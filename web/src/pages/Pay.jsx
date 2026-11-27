@@ -12,6 +12,7 @@ import { formatUsdc, isPlaceholder } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
+import { MerchantLogo } from '../components/MerchantOffer.jsx'
 
 export default function Pay() {
   const [params] = useSearchParams()
@@ -164,6 +165,7 @@ export default function Pay() {
       ) : (
         <>
           <section className="pay-hero" aria-label="Datos del cobro">
+            <MerchantLogo merchant={d.merchant} size={72} />
             <p className="payment-context-label">
               Pagás en{' '}
               <span className={isPlaceholder(merchantName) ? 'placeholder-inline' : 'payment-merchant'}>

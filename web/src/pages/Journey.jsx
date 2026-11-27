@@ -5,6 +5,7 @@ import {
   getAccount,
   getBackupSecret,
   getConfig,
+  getMerchants,
   getStops,
   humanError,
   restoreBackupSecret,
@@ -15,6 +16,8 @@ import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
 import Huella from '../components/Huella.jsx'
+import MerchantOffer from '../components/MerchantOffer.jsx'
+import { partnerMerchants } from '../lib/format.js'
 
 const BACKUP_FLAG = 'empremta-respaldo'
 
@@ -22,6 +25,7 @@ export default function Journey() {
   const [account, setAccount] = useState(null)
   const [config, setConfig] = useState(null)
   const [stops, setStops] = useState([])
+  const [merchants, setMerchants] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [secret, setSecret] = useState('')
@@ -79,9 +83,10 @@ export default function Journey() {
   }
 
   async function reload() {
-    const [cfg, list, acc] = await Promise.all([getConfig(), getStops(), getAccount()])
+    const [cfg, list, acc, shops] = await Promise.all([getConfig(), getStops(), getAccount(), getMerchants().catch(() => [])])
     setConfig(cfg)
     setStops(list)
+    setMerchants(partnerMerchants(shops))
     setAccount(acc)
   }
 
@@ -129,6 +134,7 @@ export default function Journey() {
   const costo = config?.costoCanje ?? 30
   const canRedeem = huellas >= costo
   const centro = config?.centroLabel || 'Centro de Veteranos'
+  const shopName = merchants.length === 1 ? merchants[0].nombre : 'un comercio adherido'
 
   return (
     <div className="page journey-xp">
@@ -180,12 +186,13 @@ export default function Journey() {
 
       <section className={canRedeem ? 'reward-card is-ready' : 'reward-card'} aria-labelledby="reward-title">
         <h2 id="reward-title">{canRedeem ? 'Tu descuento está listo' : 'Tu descuento'}</h2>
+        <MerchantOffer merchants={merchants} config={config} ready={canRedeem} />
         {canRedeem ? (
           <ol className="how-steps">
             <li>
               <span className="how-n" aria-hidden="true">1</span>
               <span>
-                <strong>Andá a un comercio adherido</strong>
+                <strong>Andá a {shopName}</strong>
                 <span>y pedí pagar con Empremta.</span>
               </span>
             </li>
@@ -208,8 +215,8 @@ export default function Journey() {
           </ol>
         ) : (
           <p>
-            Cuando tengas las {stops.length || 3} huellas vas a tener un {config?.descuentoPct ?? 10}% de
-            descuento (hasta {config?.descuentoMaxUsdc ?? '1'} USDC) en comercios adheridos. Cada compra aporta al {centro}.{' '}
+            Cuando tengas las {stops.length || 3} huellas, el descuento tiene un tope de{' '}
+            {config?.descuentoMaxUsdc ?? '1'} USDC por compra.{' '}
             {visited < (stops.length || 3) && (
               <strong>
                 Te {(stops.length || 3) - visited === 1 ? 'falta' : 'faltan'} {(stops.length || 3) - visited}.

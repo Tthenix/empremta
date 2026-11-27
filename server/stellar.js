@@ -286,7 +286,7 @@ export function makeDesglose({ split, merchant }) {
     toCentro: fmtStroops(split.toCentroStroops),
     huellasBurned: split.huellasBurned,
     pctCentro: merchant.pctCentro,
-    merchant: { id: merchant.id, nombre: merchant.nombre }
+    merchant: { id: merchant.id, nombre: merchant.nombre, logo: merchant.logo || null }
   };
 }
 

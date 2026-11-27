@@ -52,6 +52,7 @@ export function merchantListItem(merchant) {
   return {
     id: merchant.id,
     nombre: merchant.nombre,
+    logo: merchant.logo || null,
     direccion: merchant.direccion,
     pctCentro: merchant.pctCentro,
     lat: merchant.lat,

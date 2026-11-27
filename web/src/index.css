@@ -2077,6 +2077,73 @@ html[data-texto='muy-grande'] {
   margin-top: 0;
 }
 
+/* Comercio adherido */
+.merchant-logo {
+  display: block;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+}
+
+.pay-hero .merchant-logo,
+.merchant .merchant-logo {
+  margin: 0 auto var(--space-3);
+}
+
+.merchant .merchant-logo {
+  margin-left: 0;
+}
+
+.merchant-offer {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.reward-card .merchant-offer {
+  box-shadow: none;
+}
+
+.merchant-offer.is-ready {
+  border-color: var(--color-success-border);
+}
+
+.merchant-offer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.merchant-offer-row + .merchant-offer-row {
+  margin-top: var(--space-3);
+}
+
+.merchant-offer-row p {
+  margin: 0;
+}
+
+.merchant-offer-pct {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.merchant-offer-name {
+  font-weight: 700;
+}
+
+.page .merchant-offer-text {
+  margin: var(--space-3) 0 0;
+  color: var(--color-muted);
+}
+
 /* Pago */
 .pay-hero {
   margin-bottom: var(--space-4);

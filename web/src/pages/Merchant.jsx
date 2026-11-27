@@ -11,6 +11,7 @@ import { formatAmount, formatDate, isPlaceholder, randomRef } from '../lib/forma
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
+import { MerchantLogo } from '../components/MerchantOffer.jsx'
 
 export default function Merchant() {
   const { id } = useParams()
@@ -99,6 +100,7 @@ export default function Merchant() {
   return (
     <div className="page merchant">
       <h1>Caja</h1>
+      <MerchantLogo merchant={merchant} size={72} />
       <p className={isPlaceholder(merchant.nombre) ? 'placeholder-inline' : 'merchant-title'}>
         {merchant.nombre}
       </p>

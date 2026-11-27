@@ -53,6 +53,11 @@ export function writeFlag(key, value) {
   }
 }
 
+/** Comercios confirmados: los placeholders de prueba no se muestran al visitante. */
+export function partnerMerchants(list) {
+  return (list || []).filter((m) => !isPlaceholder(m.nombre))
+}
+
 export function randomRef(len = 8) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let out = ''

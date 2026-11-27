@@ -103,7 +103,8 @@ const STOPS = [
 const MERCHANTS = [
   {
     id: 'm1',
-    nombre: '[COMERCIO PENDIENTE]',
+    nombre: 'Einstein Coffee Club',
+    logo: '/comercios/einstein-coffee-club.jpeg',
     direccion: '[PENDIENTE]',
     pctCentro: 5,
     lat: null,
@@ -315,7 +316,7 @@ function buildDesglose({ merchantId, amount, useHuellas, acc }) {
     toCentro: fmt(toCentro),
     huellasBurned,
     pctCentro: merchant.pctCentro,
-    merchant: { id: merchant.id, nombre: merchant.nombre },
+    merchant: { id: merchant.id, nombre: merchant.nombre, logo: merchant.logo || null },
   }
 }
 

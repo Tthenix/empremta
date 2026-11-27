@@ -51,10 +51,10 @@
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.
 - [ ] Preguntar directamente a un veterano si “juntar Huellas” en un memorial le parece respetuoso; ajustar el lenguaje si hace falta.
-- [ ] Conseguir 1 comercio real cerca del Parque Central o en Maipú.
+- [x] Conseguir 1 comercio real: Einstein Coffee Club, 10 % para quienes completan la ruta (falta la dirección).
 - [ ] Verificar las coordenadas reales de las 3 paradas.
 - [ ] Sacar fotos propias de los lugares.
-- [ ] Fondear `TREASURY` en faucet.circle.com y pasar `USDC_MODE=circle`.
+- [x] Fondear `TREASURY` en faucet.circle.com y pasar `USDC_MODE=circle` (producción en Railway usa el USDC oficial de Circle, emisor GBBD47…LLFLA5; el `.env` local sigue en `mock`).
 - [ ] Ir al Memorial con el QR impreso en la mano; no pegar nada en el monumento.
 - [ ] Probar con una persona externa en el lugar y filmarla con permiso.
 - [ ] Probar cobro con el comercio.

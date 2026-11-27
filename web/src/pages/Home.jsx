@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAccount, getConfig, getStops, humanError } from '../lib/api.js'
+import { getAccount, getConfig, getMerchants, getStops, humanError } from '../lib/api.js'
 import { getExperience, themeStyle } from '../lib/experiences.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import Huella, { HuellaRow } from '../components/Huella.jsx'
 import StopPhoto from '../components/StopPhoto.jsx'
+import MerchantOffer from '../components/MerchantOffer.jsx'
+import { partnerMerchants } from '../lib/format.js'
 import { bestOrder, distanceM, formatDistance, mapsRouteUrl } from '../lib/route.js'
 
 function locate() {
@@ -39,6 +41,7 @@ const steps = [
 
 export default function Home() {
   const [stops, setStops] = useState([])
+  const [merchants, setMerchants] = useState([])
   const [config, setConfig] = useState(null)
   const [account, setAccount] = useState(null)
   const [error, setError] = useState('')
@@ -65,10 +68,11 @@ export default function Home() {
     let cancelled = false
     ;(async () => {
       try {
-        const [cfg, list] = await Promise.all([getConfig(), getStops()])
+        const [cfg, list, shops] = await Promise.all([getConfig(), getStops(), getMerchants().catch(() => [])])
         if (cancelled) return
         setConfig(cfg)
         setStops(list)
+        setMerchants(partnerMerchants(shops))
         try {
           const acc = await getAccount()
           if (!cancelled) setAccount(acc)
@@ -188,6 +192,13 @@ export default function Home() {
           </button>
         )}
       </section>
+
+      {merchants.length > 0 && (
+        <section aria-labelledby="premio-title">
+          <h2 id="premio-title">Al completar la ruta</h2>
+          <MerchantOffer merchants={merchants} config={config} ready={!next} />
+        </section>
+      )}
 
       <section aria-labelledby="como-title">
         <h2 id="como-title">Cómo funciona</h2>

@@ -8,7 +8,10 @@ import { config } from '../server/config.js';
 import { stops } from '../server/content.js';
 import { stopCode } from '../server/visits.js';
 
-const outDir = path.resolve('dist/qr');
+// Los carteles locales van a otra carpeta y con aviso: dist/qr queda solo para lo que se imprime.
+const isLocalBase = /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/.test(config.publicBaseUrl || '');
+const outDir = path.resolve(isLocalBase ? 'dist/qr-prueba' : 'dist/qr');
+const testBanner = 'PRUEBA LOCAL · NO IMPRIMIR · estos QR solo abren en esta computadora';
 const horizontalLogoPath = path.resolve('doc/empremta-marca/logo/png/empremta-horizontal-color.png');
 const appIconPath = path.resolve('doc/empremta-marca/web/empremta-icono-app-1024.png');
 const regularFontPath = path.resolve('doc/brand/fonts/Archivo-Regular.ttf');
@@ -21,8 +24,7 @@ const ruleColor = '#C6D3DE';
 
 function baseUrl() {
   const url = config.publicBaseUrl.replace(/\/$/, '');
-  const isLocal = /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/.test(url);
-  if (isLocal && !process.argv.includes('--allow-local')) {
+  if (isLocalBase && !process.argv.includes('--allow-local')) {
     console.error(
       `PUBLIC_BASE_URL apunta a ${url}: un celular no puede abrir esos QR.\n` +
         'Usá la URL pública (ej. PUBLIC_BASE_URL=https://empremta-production.up.railway.app npm run qr)\n' +
@@ -185,6 +187,7 @@ async function generatePdf(items) {
   const stream = fs.createWriteStream(file);
   doc.pipe(stream);
 
+  if (isLocalBase) drawTestBanner(doc);
   doc.fontSize(20).text('Ruta de la Memoria · Malvinas · Mendoza', { align: 'center' });
   doc.moveDown(0.4);
   doc.fontSize(11).fillColor('#3f4f5f').text('Escaneá cada código con la cámara del celular para abrir la parada.', { align: 'center' });
@@ -242,6 +245,7 @@ async function generatePostersPdf(items, publicBaseUrl) {
 
   items.forEach((item) => {
     doc.addPage({ size: 'A4', margin: 48 });
+    if (isLocalBase) drawTestBanner(doc);
     const contentX = 48;
     const contentWidth = doc.page.width - contentX * 2;
     const centerX = doc.page.width / 2;
@@ -335,6 +339,14 @@ async function generatePostersPdf(items, publicBaseUrl) {
   return file;
 }
 
+function drawTestBanner(doc) {
+  doc.save().rect(0, 0, doc.page.width, 26).fill('#B3261E').restore();
+  doc.save().font('Helvetica-Bold').fontSize(10).fillColor('#FFFFFF')
+    .text(testBanner, 0, 8, { width: doc.page.width, align: 'center', lineBreak: false })
+    .restore();
+  doc.fillColor('#17252f');
+}
+
 async function main() {
   if (!config.qrSecret) throw new Error('Falta QR_SECRET en .env. Corré primero npm run setup.');
   fs.mkdirSync(outDir, { recursive: true });
@@ -350,6 +362,7 @@ async function main() {
   console.log(`PDF imprimible: ${pdf}`);
   const posters = await generatePostersPdf(items, publicBaseUrl);
   console.log(`Carteles de parada: ${posters}`);
+  if (isLocalBase) console.log('\nAVISO: son QR de prueba (localhost) en dist/qr-prueba. Para imprimir, generá con la URL pública.');
 }
 
 main().catch((err) => {

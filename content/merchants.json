@@ -1,7 +1,8 @@
 [
   {
     "id": "m1",
-    "nombre": "[COMERCIO PENDIENTE]",
+    "nombre": "Einstein Coffee Club",
+    "logo": "/comercios/einstein-coffee-club.jpeg",
     "direccion": "[PENDIENTE]",
     "pubkeyEnv": "MERCHANT_1_PUB",
     "pctCentro": 5,
