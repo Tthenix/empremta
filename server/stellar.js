@@ -10,7 +10,10 @@ import {
 } from '@stellar/stellar-sdk';
 import { config } from './config.js';
 import { AppError, horizonToAppError, invalidInput } from './errors.js';
+import { configureHorizonTimeouts, horizonReadWithRetry, isAmbiguousSubmissionError } from './horizon-utils.js';
 import { decimalToStroopsUnchecked, fmtStroops, isAmountString, minBigInt, toStroops } from './money.js';
+
+configureHorizonTimeouts();
 
 export const server = new Horizon.Server(config.horizonUrl);
 export const HUELLA = new Asset('HUELLA', config.issuerPub);
@@ -71,11 +74,15 @@ function forgetTx(hash) {
 
 export async function loadAccountOrNull(publicKey) {
   try {
-    return await server.accounts().accountId(publicKey).call();
+    return await horizonReadWithRetry(() => server.accounts().accountId(publicKey).call());
   } catch (err) {
     if (err?.response?.status === 404 || err?.status === 404 || err?.name === 'NotFoundError') return null;
     throw err;
   }
+}
+
+function loadAccount(publicKey) {
+  return horizonReadWithRetry(() => server.loadAccount(publicKey));
 }
 
 export function assetBalance(account, asset) {
@@ -133,7 +140,7 @@ export async function buildOnboarding(publicKey) {
     throw invalidInput('Esa cuenta ya existe pero no tiene el onboarding completo');
   }
 
-  const issuerAccount = await server.loadAccount(config.issuerPub);
+  const issuerAccount = await loadAccount(config.issuerPub);
   const tx = new TransactionBuilder(issuerAccount, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET
@@ -150,9 +157,33 @@ export async function buildOnboarding(publicKey) {
   return { xdr: tx.toXDR() };
 }
 
+async function lookupIncludedTransaction(hash) {
+  try {
+    const record = await horizonReadWithRetry(
+      () => server.transactions().transaction(hash).call(),
+      { retries: 1 }
+    );
+    return record?.successful ? { hash: record.hash, ledger: record.ledger } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function submitTransactionWithRecovery(tx) {
+  try {
+    return await server.submitTransaction(tx);
+  } catch (err) {
+    if (isAmbiguousSubmissionError(err)) {
+      const recovered = await lookupIncludedTransaction(tx.hash().toString('hex'));
+      if (recovered) return recovered;
+    }
+    throw err;
+  }
+}
+
 async function submitServerSigned(tx, hashToForget = null) {
   try {
-    const result = await server.submitTransaction(tx);
+    const result = await submitTransactionWithRecovery(tx);
     if (hashToForget) forgetTx(hashToForget);
     return result;
   } catch (err) {
@@ -173,7 +204,7 @@ export async function mintVisit(publicKey, stopId) {
   const account = await loadAccountOrNull(publicKey);
   if (!account) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
   assertHuellaAccess(account);
-  const issuerAccount = await server.loadAccount(config.issuerPub);
+  const issuerAccount = await loadAccount(config.issuerPub);
   const tx = new TransactionBuilder(issuerAccount, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET
@@ -196,7 +227,7 @@ export async function demoFund(publicKey) {
   const account = await loadAccountOrNull(publicKey);
   if (!account) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
   if (!isAmountString(config.demoFundUsdc)) throw new Error('DEMO_FUND_USDC inválido');
-  const treasuryAccount = await server.loadAccount(config.treasuryPub);
+  const treasuryAccount = await loadAccount(config.treasuryPub);
   const tx = new TransactionBuilder(treasuryAccount, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET
@@ -273,8 +304,11 @@ export async function buildPayment({ publicKey, merchant, amount, ref, useHuella
     useHuellas: Boolean(useHuellas),
     huellaBalance: balances.huella
   });
+  if (decimalToStroopsUnchecked(balances.usdc || '0') < split.totalStroops) {
+    throw new AppError('INSUFFICIENT_BALANCE', 'No tenés saldo suficiente', 400);
+  }
   const desglose = makeDesglose({ split, merchant });
-  const visitorAccount = await server.loadAccount(publicKey);
+  const visitorAccount = await loadAccount(publicKey);
   const builder = new TransactionBuilder(visitorAccount, {
     fee: '100',
     networkPassphrase: Networks.TESTNET
@@ -316,7 +350,7 @@ export async function submitPayment(signedXdr) {
       Networks.TESTNET
     );
     feeBump.sign(issuerKeypair());
-    const result = await server.submitTransaction(feeBump);
+    const result = await submitTransactionWithRecovery(feeBump);
     forgetTx(hash);
     return { txHash: result.hash, desglose: entry.meta.desglose, meta: entry.meta };
   } catch (err) {

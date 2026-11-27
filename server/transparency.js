@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { horizonReadWithRetry } from './horizon-utils.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { assetBalance, HUELLA, server, USDC } from './stellar.js';
 
@@ -24,17 +25,17 @@ async function collectHorizonRecords(firstPage, keep, label) {
     if (pages >= MAX_PAGES) {
       throw new Error(`${label} supera ${MAX_PAGES * 200} operaciones en Horizon`);
     }
-    page = await page.next();
+    page = await horizonReadWithRetry(() => page.next());
   }
   return records;
 }
 
 async function incomingCentroPayments() {
-  const firstPage = await server.payments()
+  const firstPage = await horizonReadWithRetry(() => server.payments()
     .forAccount(config.centroPub)
     .order('desc')
     .limit(200)
-    .call();
+    .call());
   return collectHorizonRecords(firstPage, isConfiguredUsdcPayment, 'La cuenta del centro');
 }
 
@@ -59,7 +60,7 @@ export async function getCentroOnChain() {
 
   try {
     const [account, payments] = await Promise.all([
-      server.accounts().accountId(config.centroPub).call(),
+      horizonReadWithRetry(() => server.accounts().accountId(config.centroPub).call()),
       incomingCentroPayments()
     ]);
     const total = payments.reduce(
@@ -101,11 +102,11 @@ function isRevocationOperation(record) {
 }
 
 async function huellaFlagOperations() {
-  const firstPage = await server.operations()
+  const firstPage = await horizonReadWithRetry(() => server.operations()
     .forAccount(config.issuerPub)
     .order('desc')
     .limit(200)
-    .call();
+    .call());
   return collectHorizonRecords(firstPage, isHuellaFlagOperation, 'Las operaciones del emisor');
 }
 

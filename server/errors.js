@@ -13,6 +13,14 @@ export function invalidInput(message = 'Los datos enviados no son válidos') {
 }
 
 export function horizonToAppError(err) {
+  if (!err?.response) {
+    return new AppError(
+      'HORIZON_UNAVAILABLE',
+      'No se pudo contactar la red Stellar, probá de nuevo en un momento',
+      503,
+      err?.message
+    );
+  }
   const resultCodes = err?.response?.data?.extras?.result_codes;
   const txCode = resultCodes?.transaction;
   const opCodes = resultCodes?.operations || [];
@@ -20,6 +28,12 @@ export function horizonToAppError(err) {
 
   if (all.some((code) => code === 'op_underfunded' || code === 'tx_insufficient_balance')) {
     return new AppError('INSUFFICIENT_BALANCE', 'No tenés saldo suficiente', 400, resultCodes);
+  }
+  if (all.some((code) => code === 'tx_insufficient_fee')) {
+    return new AppError('HORIZON_ERROR', 'La red está congestionada y la comisión no alcanzó, probá de nuevo', 502, resultCodes);
+  }
+  if (all.some((code) => code === 'op_already_exists')) {
+    return new AppError('ALREADY_ONBOARDED', 'Esa cuenta o trustline ya existe; recargá tu estado y probá de nuevo', 409, resultCodes);
   }
   if (all.some((code) => code === 'tx_timeout' || code === 'tx_too_late')) {
     return new AppError('HORIZON_ERROR', 'La transacción venció, probá de nuevo', 502, resultCodes);

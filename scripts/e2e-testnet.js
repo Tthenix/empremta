@@ -276,6 +276,13 @@ async function verifyHttpContract(visitor, paymentInfo) {
   const cfg = await getJson('/api/config');
   assert(cfg.network === 'testnet' && cfg.demoMode === true, 'config HTTP inesperada');
   assert(cfg.usdcAsset?.code === 'USDC' && cfg.huellaAsset?.code === 'HUELLA', 'assets faltantes en config');
+  const tomlResponse = await fetch(`${apiBase}/.well-known/stellar.toml`);
+  assert(tomlResponse.ok, 'stellar.toml no responde 200');
+  assert(tomlResponse.headers.get('access-control-allow-origin') === '*', 'stellar.toml no expone CORS *');
+  const stellarToml = await tomlResponse.text();
+  assert(stellarToml.includes('code = "HUELLA"'), 'stellar.toml no declara HUELLA');
+  assert(stellarToml.includes(`issuer = "${cfg.huellaAsset.issuer}"`), 'stellar.toml no declara el issuer HUELLA correcto');
+  assert(stellarToml.includes('status = "test"'), 'stellar.toml no marca HUELLA como asset de test');
   const stopList = await getJson('/api/stops');
   assert(Array.isArray(stopList) && stopList.length === 3, 'GET /api/stops no devolvió 3 paradas');
   assert(!('historia' in stopList[0]) && !('code' in stopList[0]), 'GET /api/stops expone historia o code');

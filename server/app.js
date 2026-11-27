@@ -11,6 +11,7 @@ import { AppError, invalidInput } from './errors.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from './payments.js';
 import { assetBalance, buildOnboarding, getAccountBalances, HUELLA, submitOnboarding, USDC } from './stellar.js';
+import { buildStellarToml } from './stellarToml.js';
 import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
@@ -42,6 +43,15 @@ function asyncRoute(handler) {
 function requirePublicKey(value) {
   if (!StrKey.isValidEd25519PublicKey(value)) throw invalidInput('La clave pública no es válida');
 }
+
+app.get('/.well-known/stellar.toml', (req, res) => {
+  res.set({
+    'access-control-allow-origin': '*',
+    'content-type': 'text/plain; charset=utf-8',
+    'cache-control': 'public, max-age=300'
+  });
+  res.send(buildStellarToml());
+});
 
 app.get('/api/config', (req, res) => {
   res.json({

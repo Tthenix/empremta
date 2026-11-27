@@ -6,10 +6,14 @@ const horizonUrl = process.env.HORIZON_URL || 'https://horizon-testnet.stellar.o
 if (!horizonUrl.includes('testnet')) {
   throw new Error('HORIZON_URL debe contener "testnet". Este servidor se niega a arrancar contra otra red.');
 }
+const usdcMode = process.env.USDC_MODE || 'mock';
+if (!['mock', 'circle'].includes(usdcMode)) {
+  throw new Error('USDC_MODE debe ser "mock" o "circle".');
+}
 
 export const config = {
   horizonUrl,
-  usdcMode: process.env.USDC_MODE || 'mock',
+  usdcMode,
   usdcCircleIssuer: process.env.USDC_CIRCLE_ISSUER || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
   issuerSecret: process.env.ISSUER_SECRET || '',
   issuerPub: process.env.ISSUER_PUB || '',
@@ -28,6 +32,7 @@ export const config = {
   demoMode: String(process.env.DEMO_MODE || 'true').toLowerCase() === 'true',
   demoFundUsdc: process.env.DEMO_FUND_USDC || '5',
   publicBaseUrl: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
+  homeDomain: process.env.HOME_DOMAIN || '',
   port: Number(process.env.PORT || 3000),
   dbPath: process.env.DB_PATH || './data/app.sqlite'
 };

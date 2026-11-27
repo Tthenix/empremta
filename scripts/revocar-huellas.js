@@ -1,6 +1,7 @@
 import { Keypair, Networks, Operation, StrKey, TransactionBuilder } from '@stellar/stellar-sdk';
 import { config } from '../server/config.js';
 import { horizonToAppError } from '../server/errors.js';
+import { horizonReadWithRetry } from '../server/horizon-utils.js';
 import { assetBalance, HUELLA, loadAccountOrNull, server } from '../server/stellar.js';
 
 const EXPLORER_TX = 'https://stellar.expert/explorer/testnet/tx/';
@@ -51,7 +52,7 @@ async function main() {
     return;
   }
 
-  const issuerAccount = await server.loadAccount(config.issuerPub);
+  const issuerAccount = await horizonReadWithRetry(() => server.loadAccount(config.issuerPub));
   const tx = new TransactionBuilder(issuerAccount, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET

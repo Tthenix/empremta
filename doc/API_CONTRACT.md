@@ -10,7 +10,7 @@ All amounts are **strings** with up to 7 decimals (e.g. `"2.5000000"` or `"2.50"
 ```
 
 with HTTP 4xx/5xx. `message` is already human-readable Rioplatense Spanish; the UI shows it as-is.
-Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `ACCOUNT_REVOKED`, `HORIZON_ERROR`, `RATE_LIMITED`, `NOT_FOUND`.
+Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `ACCOUNT_REVOKED`, `ALREADY_ONBOARDED`, `HORIZON_ERROR`, `HORIZON_UNAVAILABLE`, `RATE_LIMITED`, `NOT_FOUND`.
 
 ## GET /api/config
 ```json
@@ -105,6 +105,9 @@ The existing top-level fields always come from the application database. `onChai
 
 ## POST /api/demo/fund
 Req `{ "publicKey" }` → `{ "txHash": "...", "amount": "5" }` (403 `DEMO_DISABLED`, 409 `ALREADY_FUNDED`)
+
+## GET /.well-known/stellar.toml
+Additive non-JSON metadata endpoint. Responds `200 text/plain; charset=utf-8` with `Access-Control-Allow-Origin: *` and a SEP-1 TOML document for testnet: organization marked as demo, accounts controlled by the demo, and the HUELLA currency (`status = "test"`, issuer, display decimals, non-redemption conditions).
 
 ## QR / URLs
 - Stop QR: `${PUBLIC_BASE_URL}/v/${stopId}?c=${HMAC_SHA256(QR_SECRET, stopId).hex.slice(0,16)}`

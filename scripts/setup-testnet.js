@@ -10,6 +10,9 @@ import {
   Operation,
   TransactionBuilder
 } from '@stellar/stellar-sdk';
+import { configureHorizonTimeouts, horizonReadWithRetry } from '../server/horizon-utils.js';
+
+configureHorizonTimeouts();
 
 const ENV_PATH = '.env';
 const DEFAULTS = {
@@ -24,6 +27,7 @@ const DEFAULTS = {
   DEMO_MODE: 'true',
   DEMO_FUND_USDC: '5',
   PUBLIC_BASE_URL: 'http://localhost:3000',
+  HOME_DOMAIN: '',
   PORT: '3000',
   DB_PATH: './data/app.sqlite'
 };
@@ -33,7 +37,7 @@ const ORDER = [
   'TREASURY_SECRET', 'TREASURY_PUB', 'MERCHANT_1_SECRET', 'MERCHANT_1_PUB',
   'MERCHANT_2_SECRET', 'MERCHANT_2_PUB', 'USDC_ISSUER_MOCK_SECRET', 'USDC_ISSUER_MOCK_PUB',
   'QR_SECRET', 'HUELLAS_POR_VISITA', 'COSTO_CANJE', 'DESCUENTO_PCT', 'DESCUENTO_MAX_USDC',
-  'GEO_RADIUS_M', 'DEMO_MODE', 'DEMO_FUND_USDC', 'PUBLIC_BASE_URL', 'PORT', 'DB_PATH'
+  'GEO_RADIUS_M', 'DEMO_MODE', 'DEMO_FUND_USDC', 'PUBLIC_BASE_URL', 'HOME_DOMAIN', 'PORT', 'DB_PATH'
 ];
 const KEY_NAMES = ['ISSUER', 'CENTRO', 'TREASURY', 'MERCHANT_1', 'MERCHANT_2', 'USDC_ISSUER_MOCK'];
 const EXPLORER_ACCOUNT = 'https://stellar.expert/explorer/testnet/account/';
@@ -61,7 +65,7 @@ function assertTestnet(url) {
 
 async function accountExists(server, pub) {
   try {
-    return await server.accounts().accountId(pub).call();
+    return await horizonReadWithRetry(() => server.accounts().accountId(pub).call());
   } catch (err) {
     if (err?.response?.status === 404 || err?.name === 'NotFoundError') return null;
     throw err;
@@ -80,7 +84,9 @@ async function waitForAccount(server, pub, attempts = 12) {
 async function fundWithFriendbot(server, pub) {
   const existing = await accountExists(server, pub);
   if (existing) return false;
-  const res = await fetch(`https://friendbot.stellar.org?addr=${encodeURIComponent(pub)}`);
+  const res = await fetch(`https://friendbot.stellar.org?addr=${encodeURIComponent(pub)}`, {
+    signal: AbortSignal.timeout(10_000)
+  });
   if (!res.ok) throw new Error(`Friendbot falló para ${pub}: HTTP ${res.status}`);
   const account = await waitForAccount(server, pub);
   if (!account) throw new Error(`Friendbot respondió pero Horizon no muestra la cuenta ${pub}`);
@@ -89,7 +95,7 @@ async function fundWithFriendbot(server, pub) {
 
 async function submitTx(server, sourceSecret, operations) {
   const keypair = Keypair.fromSecret(sourceSecret);
-  const account = await server.loadAccount(keypair.publicKey());
+  const account = await horizonReadWithRetry(() => server.loadAccount(keypair.publicKey()));
   const builder = new TransactionBuilder(account, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET
@@ -130,6 +136,9 @@ function printHorizonError(err) {
 async function main() {
   const env = { ...DEFAULTS, ...readEnvFile() };
   assertTestnet(env.HORIZON_URL);
+  if (!['mock', 'circle'].includes(env.USDC_MODE)) {
+    throw new Error('USDC_MODE debe ser "mock" o "circle". Setup cancelado.');
+  }
   if (!env.QR_SECRET) env.QR_SECRET = crypto.randomBytes(32).toString('hex');
 
   for (const name of KEY_NAMES) {
@@ -160,7 +169,7 @@ async function main() {
   console.log(funded.length ? `Cuentas nuevas fondeadas con Friendbot: ${funded.join(', ')}` : 'Todas las cuentas ya existían; no hizo falta Friendbot.');
 
   const issuerKeypair = Keypair.fromSecret(env.ISSUER_SECRET);
-  const issuer = await server.loadAccount(issuerKeypair.publicKey());
+  const issuer = await horizonReadWithRetry(() => server.loadAccount(issuerKeypair.publicKey()));
   const flags = issuer.flags || {};
   if (!flags.auth_required || !flags.auth_revocable) {
     const result = await submitTx(server, env.ISSUER_SECRET, [
@@ -175,7 +184,7 @@ async function main() {
   const usdc = new Asset('USDC', usdcIssuer);
   for (const name of ['CENTRO', 'TREASURY', 'MERCHANT_1', 'MERCHANT_2']) {
     const pub = env[`${name}_PUB`];
-    const account = await server.loadAccount(pub);
+    const account = await horizonReadWithRetry(() => server.loadAccount(pub));
     if (!assetBalance(account, usdc)) {
       const result = await submitTx(server, env[`${name}_SECRET`], [
         Operation.changeTrust({ asset: usdc, source: pub })
@@ -188,7 +197,7 @@ async function main() {
 
   if (env.USDC_MODE === 'mock') {
     const target = decimalToStroops('10000');
-    const treasuryAccount = await server.loadAccount(env.TREASURY_PUB);
+    const treasuryAccount = await horizonReadWithRetry(() => server.loadAccount(env.TREASURY_PUB));
     const current = decimalToStroops(assetBalance(treasuryAccount, usdc)?.balance || '0');
     if (current < target) {
       const amount = stroopsToDecimal(target - current);
@@ -204,7 +213,7 @@ async function main() {
     console.log(`TREASURY: ${env.TREASURY_PUB}`);
   }
 
-  const issuerAfter = await server.loadAccount(env.ISSUER_PUB);
+  const issuerAfter = await horizonReadWithRetry(() => server.loadAccount(env.ISSUER_PUB));
   console.log('\nCuentas de testnet:');
   for (const name of KEY_NAMES) {
     const pub = env[`${name}_PUB`];

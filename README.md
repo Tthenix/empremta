@@ -71,6 +71,19 @@ npm run revocar -- <G...pubkey> --restore  # la restaura
 
 El script firma una operación clásica `setTrustLineFlags` con `ISSUER`, valida que sea testnet e imprime el link público de la transacción. Una cuenta suspendida no puede recibir ni usar Huellas; la API devuelve `ACCOUNT_REVOKED` con un mensaje humano en español y `/transparencia` muestra la traza pública de suspensiones vigentes.
 
+## SEP-1: metadata pública de HUELLA
+
+La API sirve `/.well-known/stellar.toml` con CORS `*`. Describe HUELLA como asset `test`, sin valor monetario, y a Empremta/Centro de Veteranos como cuentas de demostración, sin afirmar aval institucional.
+
+Para que las wallets puedan vincular esa metadata con el emisor, un humano debe configurar `home_domain` en la cuenta `ISSUER`. Es una operación explícita contra la cuenta de testnet y por eso no forma parte del setup automático:
+
+```bash
+HOME_DOMAIN=<dominio-corto> npm run home-domain
+# o: npm run home-domain -- --domain <dominio-corto>
+```
+
+El dominio tiene que servir `https://<dominio-corto>/.well-known/stellar.toml` y entrar en el límite de 32 bytes de `home_domain`. Si el hostname generado por Railway supera ese límite, hay que usar un dominio corto propio antes de ejecutar el comando.
+
 ## Frontend integrado
 
 Cuando el directorio `web/` está integrado:
@@ -118,7 +131,8 @@ Copiar `.env.example` o, más simple, correr `npm run setup` y completar/usar el
 | `QR_SECRET` | Secreto HMAC para firmar QRs de paradas |
 | `DEMO_MODE` | `true` habilita `/api/demo/fund` |
 | `DB_PATH` | SQLite; local `./data/app.sqlite`, Railway `/data/app.sqlite` |
-| `PUBLIC_BASE_URL` | URL base usada en QR |
+| `PUBLIC_BASE_URL` | URL base usada en QR y en `stellar.toml` |
+| `HOME_DOMAIN` | Dominio corto opcional para vincular SEP-1 con `ISSUER` mediante `npm run home-domain` |
 | `PORT` | Puerto HTTP, default `3000` |
 
 **Nunca commitear `.env`.** Los secretos solo van en variables del entorno.
