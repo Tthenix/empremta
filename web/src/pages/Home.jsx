@@ -62,8 +62,12 @@ export default function Home() {
         <p>
           Huellas: <strong>{formatAmount(huellas, 0)}</strong>
         </p>
+        <div className="progress-track" aria-hidden="true">
+          <span style={{ width: `${Math.min(100, (visited / total) * 100)}%` }} />
+        </div>
         <p className="hint">
-          Las Huellas son el registro de tu paso por cada lugar de memoria.
+          Las Huellas son el registro de tu paso. Con {config?.costoCanje ?? 30} Huellas se
+          habilita un descuento en comercios adheridos.
         </p>
         <Link className="btn btn-secondary" to="/recorrido">
           Ver mi recorrido
@@ -72,9 +76,6 @@ export default function Home() {
 
       <section>
         <h2>Paradas</h2>
-        <Suspense fallback={<Loading label="Cargando mapa…" />}>
-          <StopMap stops={stops} />
-        </Suspense>
         <ul className="stop-list">
           {stops.map((s) => (
             <li key={s.id}>
@@ -85,6 +86,9 @@ export default function Home() {
             </li>
           ))}
         </ul>
+        <Suspense fallback={<Loading label="Cargando mapa…" />}>
+          <StopMap stops={stops} />
+        </Suspense>
       </section>
 
       {config && (

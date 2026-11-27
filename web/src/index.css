@@ -5,7 +5,7 @@
   --muted: #5a6577;
   --celeste: #6ba3c4;
   --celeste-soft: #d9ebf5;
-  --celeste-deep: #3d7a9c;
+  --celeste-deep: #356e8e;
   --border: #d5dde6;
   --error-bg: #fceeed;
   --error-ink: #8a2f2f;
@@ -99,6 +99,9 @@ input:focus-visible,
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
   text-decoration: none;
   color: var(--muted);
   font-weight: 600;
@@ -153,7 +156,7 @@ input:focus-visible,
 .fine-print,
 .muted {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .btn {
@@ -189,7 +192,7 @@ input:focus-visible,
   border-color: var(--border);
   color: var(--muted);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .btn:disabled {
@@ -213,7 +216,7 @@ input:focus-visible,
 }
 
 .map-wrap {
-  height: 240px;
+  height: 180px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -276,10 +279,14 @@ input:focus-visible,
 }
 
 .photo-placeholder {
-  height: 160px;
+  min-height: 76px;
+  display: grid;
+  place-items: center;
   background: linear-gradient(135deg, var(--celeste-soft), #e8eef3);
   border-radius: var(--radius);
   margin: 0.75rem 0 1rem;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .stop-photo {
@@ -317,8 +324,8 @@ input:focus-visible,
   display: inline-block;
   margin-top: 0.5rem;
   font-weight: 700;
-  min-height: 44px;
-  line-height: 44px;
+  min-height: 48px;
+  line-height: 48px;
 }
 
 .balances {
@@ -442,7 +449,7 @@ input:focus-visible,
 .field-help {
   margin: 0.25rem 0 0 1.8rem;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .btn-block {
@@ -722,7 +729,7 @@ input:focus-visible,
   }
 
   .map-wrap {
-    height: 300px;
+    height: 260px;
   }
 }
 
@@ -744,4 +751,48 @@ input:focus-visible,
   background: var(--celeste-soft);
   padding: 0.75rem;
   font-weight: 600;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  background: var(--celeste-soft);
+  border-radius: 999px;
+  margin: 0.75rem 0;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  background: var(--celeste-deep);
+  border-radius: inherit;
+}
+
+.payment-live {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.qr-details {
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+.qr-details summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

@@ -77,6 +77,19 @@ export default function Journey() {
         </p>
       )}
 
+      <section className="progress-card" aria-label="Tu progreso">
+        <p>
+          Visitaste <strong>{account?.visits?.length || 0}</strong> de <strong>{stops.length || 3}</strong> lugares
+        </p>
+        <div className="progress-track" aria-hidden="true">
+          <span
+            style={{
+              width: `${Math.min(100, ((account?.visits?.length || 0) / (stops.length || 3)) * 100)}%`,
+            }}
+          />
+        </div>
+      </section>
+
       <section className="balances" aria-label="Saldos">
         <div>
           <p className="label">Huellas</p>
@@ -97,7 +110,12 @@ export default function Journey() {
       <section>
         <h2>Visitas</h2>
         {!account?.visits?.length ? (
-          <p className="empty">Todavía no registraste visitas. Escaneá el QR en un lugar de memoria.</p>
+          <div className="empty">
+            <p>Todavía no registraste visitas. Escaneá el QR en un lugar de memoria.</p>
+            <Link className="btn btn-secondary" to="/">
+              Ver las paradas
+            </Link>
+          </div>
         ) : (
           <ul className="visit-list">
             {account.visits.map((v) => (

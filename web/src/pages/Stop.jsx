@@ -89,7 +89,9 @@ export default function Stop() {
       {stop.foto ? (
         <img className="stop-photo" src={stop.foto} alt={`Vista de ${stop.nombre}`} />
       ) : (
-        <div className="photo-placeholder" aria-hidden="true" />
+        <div className="photo-placeholder">
+          <span>Fotografía pendiente</span>
+        </div>
       )}
 
       <section aria-labelledby="historia-title">

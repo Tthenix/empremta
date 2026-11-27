@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import {
@@ -7,7 +7,7 @@ import {
   getMerchants,
   humanError,
 } from '../lib/api.js'
-import { formatAmount, formatDate, randomRef } from '../lib/format.js'
+import { formatAmount, formatDate, isPlaceholder, randomRef } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
@@ -99,7 +99,9 @@ export default function Merchant() {
   return (
     <div className="page merchant">
       <h1>Caja</h1>
-      <p className="merchant-title">{merchant.nombre}</p>
+      <p className={isPlaceholder(merchant.nombre) ? 'placeholder-inline' : 'merchant-title'}>
+        {merchant.nombre}
+      </p>
       <ErrorMsg>{error}</ErrorMsg>
 
       <form className="cash-form" onSubmit={onGenerate}>
@@ -119,24 +121,26 @@ export default function Merchant() {
       </form>
 
       {qrDataUrl && (
-        <section className="qr-panel" aria-live="polite">
-          <img className="qr-img" src={qrDataUrl} alt={`Código QR de cobro, referencia ${refCode}`} />
-          <p className="fine-print">Ref. {refCode}</p>
-          <p className="qr-url">{qrUrl}</p>
-
+        <section className="qr-panel" aria-live="polite" aria-atomic="true">
           {payment ? (
-            <div className="success-box">
-              <p>✓ Pago recibido</p>
+            <div className="success-box payment-live" role="status">
+              <p>Pago recibido</p>
               <p>
                 {formatAmount(payment.amount)} · {formatDate(payment.createdAt)}
               </p>
               <TxLink hash={payment.txHash} explorerTxUrl={config?.explorerTxUrl} />
             </div>
           ) : (
-            <p className="waiting" role="status">
+            <p className="waiting payment-live" role="status">
               Esperando pago…
             </p>
           )}
+          <img className="qr-img" src={qrDataUrl} alt={`Código QR de cobro, referencia ${refCode}`} />
+          <p className="fine-print">Ref. {refCode}</p>
+          <details className="qr-details">
+            <summary>Ver enlace de cobro</summary>
+            <p className="qr-url">{qrUrl}</p>
+          </details>
         </section>
       )}
     </div>
