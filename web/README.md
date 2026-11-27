@@ -1,16 +1,34 @@
-# React + Vite
+# Ruta de la Memoria — Frontend (PWA)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite app for the Malvinas memory route (hackathon FLAT 2026).
 
-Currently, two official plugins are available:
+## Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+cd web
+cp .env.example .env   # VITE_API_MOCK=true by default
+npm install
+npm run dev
+```
 
-## React Compiler
+Open `http://localhost:5173`. With mock mode, the full visitor → 3 visits → pay → transparency flow works without the API.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+When the API (`feat(m4)`) is ready:
 
-## Expanding the Oxlint configuration
+1. Merge `feat/ruta-memoria-api` into this branch
+2. Set `VITE_API_MOCK=false`
+3. Run the server on port 3000 (Vite proxies `/api`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Screens
+
+| Path | Role |
+|------|------|
+| `/` | Home + map + progress |
+| `/v/:stopId?c=CODE` | Stop + register visit |
+| `/recorrido` | Journey, balances, backup key |
+| `/pagar?m&monto&ref` | Pay with breakdown |
+| `/comercio/:id` | Merchant cash register + QR |
+| `/transparencia` | Public totals |
+| `/acerca` | About |
+
+Decisions and contract requests: `DECISIONES-WEB.md`.
