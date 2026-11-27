@@ -10,7 +10,7 @@ All amounts are **strings** with up to 7 decimals (e.g. `"2.5000000"` or `"2.50"
 ```
 
 with HTTP 4xx/5xx. `message` is already human-readable Rioplatense Spanish; the UI shows it as-is.
-Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `DEMO_DISABLED`, `HORIZON_ERROR`, `RATE_LIMITED`, `NOT_FOUND`.
+Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `HORIZON_ERROR`, `RATE_LIMITED`, `NOT_FOUND`.
 
 ## GET /api/config
 ```json
@@ -68,6 +68,7 @@ Req `{ "publicKey", "merchantId": "m1", "amount": "2.50", "ref": "AB12CD34", "us
 
 ## POST /api/pay/submit
 Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "...", "desglose": { ...same as build } }`
+Both `/api/pay/build` and `/api/pay/submit` return 409 `ALREADY_PAID` when that merchant already received a payment with the same `ref`.
 
 ## GET /api/merchants
 `[ { "id": "m1", "nombre": "...", "direccion": "...", "pctCentro": 5, "lat": null, "lng": null, "pub": "G..." } ]`

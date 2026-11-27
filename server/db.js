@@ -83,6 +83,10 @@ export function recordPayment({ txHash, ref, pubkey, merchantId, desglose }) {
   );
 }
 
+export function hasPaymentRef(merchantId, ref) {
+  return Boolean(db.prepare('SELECT 1 FROM payments WHERE merchant_id = ? AND ref = ?').get(merchantId, ref));
+}
+
 export function listMerchantPayments(merchantId, since = null) {
   const params = [merchantId];
   let sql = `SELECT tx_hash AS txHash, ref, amount, discount, to_merchant AS toMerchant,

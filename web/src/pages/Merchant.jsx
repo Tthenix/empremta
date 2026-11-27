@@ -129,18 +129,23 @@ export default function Merchant() {
                 {formatAmount(payment.amount)} · {formatDate(payment.createdAt)}
               </p>
               <TxLink hash={payment.txHash} explorerTxUrl={config?.explorerTxUrl} />
+              <p className="fine-print">Para otro cobro, ingresá un monto y tocá “Generar cobro”.</p>
             </div>
           ) : (
             <p className="waiting payment-live" role="status">
               Esperando pago…
             </p>
           )}
-          <img className="qr-img" src={qrDataUrl} alt={`Código QR de cobro, referencia ${refCode}`} />
-          <p className="fine-print">Ref. {refCode}</p>
-          <details className="qr-details">
-            <summary>Ver enlace de cobro</summary>
-            <p className="qr-url">{qrUrl}</p>
-          </details>
+          {!payment && (
+            <>
+              <img className="qr-img" src={qrDataUrl} alt={`Código QR de cobro, referencia ${refCode}`} />
+              <p className="fine-print">Ref. {refCode}</p>
+              <details className="qr-details">
+                <summary>Ver enlace de cobro</summary>
+                <p className="qr-url">{qrUrl}</p>
+              </details>
+            </>
+          )}
         </section>
       )}
     </div>
