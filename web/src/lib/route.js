@@ -40,6 +40,17 @@ export function bestOrder(origin, stops) {
   return best
 }
 
+/**
+ * Próximo lugar a sugerir desde `stop`, por cercanía.
+ * Nunca propone un lugar con huella. Entre los que faltan, prefiere los que todavía no se abrieron
+ * en esta visita (`seenIds`), para no rebotar entre los dos más cercanos a quien solo lee.
+ */
+export function nextStopFrom(stop, stops, visitedIds, seenIds = new Set()) {
+  const pending = stops.filter((s) => s.id !== stop.id && !visitedIds.has(s.id))
+  const unseen = pending.filter((s) => !seenIds.has(s.id))
+  return bestOrder(stop, unseen.length ? unseen : pending)[0]
+}
+
 export function formatDistance(m) {
   if (m < 1000) return `${Math.round(m / 10) * 10} m`
   return `${(m / 1000).toLocaleString('es-AR', { maximumFractionDigits: 1 })} km`

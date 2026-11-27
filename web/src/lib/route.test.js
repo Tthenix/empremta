@@ -1,7 +1,7 @@
 // node --test src/lib/route.test.js
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { bestOrder, distanceM, formatDistance, mapsRouteUrl } from './route.js'
+import { bestOrder, distanceM, formatDistance, mapsRouteUrl, nextStopFrom } from './route.js'
 
 const pc = { id: 'pc', lat: -32.877, lng: -68.846 }
 const plu = { id: 'plu', lat: -32.832, lng: -68.793 }
@@ -25,6 +25,23 @@ test('desde Las Heras conviene empezar por El Plumerillo', () => {
 test('ignora lugares sin coordenadas y acepta listas cortas', () => {
   assert.deepEqual(bestOrder(pc, [{ id: 'x', lat: null, lng: null }, plu]).map((s) => s.id), ['plu'])
   assert.deepEqual(bestOrder(pc, []), [])
+})
+
+test('leyendo sin huellas: por cercanía, sin rebotar entre 1 y 2', () => {
+  const stops = [pc, plu, coq]
+  const none = new Set()
+  assert.equal(nextStopFrom(pc, stops, none, new Set(['pc'])).id, 'plu')
+  assert.equal(nextStopFrom(plu, stops, none, new Set(['pc', 'plu'])).id, 'coq')
+  // ya se abrieron todos: vuelve al más cercano
+  assert.equal(nextStopFrom(coq, stops, none, new Set(['pc', 'plu', 'coq'])).id, 'pc')
+})
+
+test('nunca propone un lugar con huella', () => {
+  const stops = [pc, plu, coq]
+  assert.equal(nextStopFrom(pc, stops, new Set(['pc'])).id, 'plu')
+  assert.equal(nextStopFrom(plu, stops, new Set(['pc', 'plu'])).id, 'coq')
+  assert.equal(nextStopFrom(pc, stops, new Set(['plu'])).id, 'coq')
+  assert.equal(nextStopFrom(coq, stops, new Set(['pc', 'plu', 'coq'])), undefined)
 })
 
 test('formato y enlace de Maps', () => {

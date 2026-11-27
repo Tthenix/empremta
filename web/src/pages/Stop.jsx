@@ -16,7 +16,7 @@ import TxLink from '../components/TxLink.jsx'
 import Huella, { HuellaRow } from '../components/Huella.jsx'
 import StoryExperience from '../components/StoryExperience.jsx'
 import StopPhoto from '../components/StopPhoto.jsx'
-import { bestOrder } from '../lib/route.js'
+import { nextStopFrom } from '../lib/route.js'
 
 function getGeo() {
   return new Promise((resolve) => {
@@ -75,6 +75,18 @@ function VisitMoment({ done, stops, visitedIds, explorerTxUrl, next }) {
   )
 }
 
+// Lugares abiertos en esta visita (se olvidan al cerrar el navegador): evitan sugerir uno ya leído.
+function markSeen(stopId) {
+  try {
+    const seen = new Set(JSON.parse(sessionStorage.getItem('empremta-vistos') || '[]'))
+    seen.add(stopId)
+    sessionStorage.setItem('empremta-vistos', JSON.stringify([...seen]))
+    return seen
+  } catch {
+    return new Set([stopId])
+  }
+}
+
 // Remontar por parada: al ir al próximo lugar el estado arranca limpio.
 export default function StopRoute() {
   const { stopId } = useParams()
@@ -90,6 +102,7 @@ function Stop({ stopId }) {
   const [stop, setStop] = useState(null)
   const [stops, setStops] = useState([])
   const [visitedIds, setVisitedIds] = useState(new Set())
+  const [seenIds] = useState(() => markSeen(stopId))
   const [config, setConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -152,8 +165,7 @@ function Stop({ stopId }) {
   const hasCoords = stop.lat != null && stop.lng != null
   const alreadyVisited = visitedIds.has(stop.id)
   const canRegister = code && !done && !alreadyVisited
-  // Desde este lugar, el próximo es el primero del camino más corto entre los que faltan.
-  const nextStop = bestOrder(stop, stops.filter((s) => s.id !== stop.id && !visitedIds.has(s.id)))[0]
+  const nextStop = nextStopFrom(stop, stops, visitedIds, seenIds)
 
   let finishLabel = 'Volver a la ruta'
   let onFinish = () => navigate('/')
