@@ -19,3 +19,6 @@
 - UX ronda 3: el movimiento queda limitado a transiciones cortas de color/fondo/elevación y estados activos; `prefers-reduced-motion` reduce animaciones y transiciones globalmente. No se agregaron celebraciones, confetti ni gamificación.
 - UX ronda 3: las regiones de estado vacías se colapsan visualmente con ocultamiento accesible tipo screen-reader-only para evitar espacios muertos; cuando reciben texto vuelven a ocupar layout y ser visibles.
 - UX ronda 3: `doc/Devin/PROMPT-UX3.md` se incorpora al commit documental porque los briefs de rondas anteriores ya están versionados y la verificación final exige `git status` limpio.
+- Transparencia on-chain: el total grande se calcula desde pagos USDC entrantes a `CENTRO` leídos de Horizon, con cache de 20 s. La base sigue siendo fuente del desglose por comercio; los pagos del ledger sin correspondencia local se muestran como “Otro aporte” porque igual son fondos reales recibidos por la cuenta pública.
+- Transparencia on-chain: si Horizon falla o la cuenta supera el límite defensivo de paginación, la API degrada a `db-fallback` y la UI lo declara explícitamente en vez de ocultar la diferencia de fuente.
+- Briefs de trabajo: `doc/Devin/PROMPT-FEATURES.md` se versiona igual que los briefs anteriores para conservar el contexto de la ronda y dejar `git status` limpio sin borrar archivos ajenos.

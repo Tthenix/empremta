@@ -5,11 +5,29 @@ import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
 
+function paymentsForDisplay(data) {
+  const dbPayments = data.lista || []
+  if (data.onChain?.source !== 'horizon') return dbPayments
+
+  const dbByHash = new Map(dbPayments.map((payment) => [payment.txHash, payment]))
+  return (data.onChain.lista || []).map((payment) => {
+    const match = dbByHash.get(payment.txHash)
+    return {
+      txHash: payment.txHash,
+      merchantId: match?.merchantId || null,
+      nombre: match?.nombre || 'Otro aporte',
+      toCentro: payment.amount,
+      createdAt: payment.createdAt,
+    }
+  })
+}
+
 export default function Transparency() {
   const [data, setData] = useState(null)
   const [config, setConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     let cancelled = false
@@ -30,13 +48,26 @@ export default function Transparency() {
     }
   }, [])
 
+  useEffect(() => {
+    if (data?.onChain?.source !== 'horizon') return undefined
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
+  }, [data?.onChain?.source])
+
   if (loading) return <Loading label="Cargando transparencia…" />
   if (error) return <ErrorMsg>{error}</ErrorMsg>
   if (!data) return null
 
   const label = config?.usdcLabel || 'USDC'
   const centroLabel = config?.centroLabel || 'Centro de Veteranos (cuenta de demostración)'
-  const hasPayments = data.lista?.length > 0
+  const onChain = data.onChain?.source === 'horizon' ? data.onChain : null
+  const visiblePayments = paymentsForDisplay(data)
+  const hasPayments = visiblePayments.length > 0
+  const totalCentro = onChain?.totalRecibido || data.totalCentro
+  const paymentCount = onChain?.pagos ?? data.pagos
+  const chainAgeSeconds = onChain
+    ? Math.max(0, Math.floor((now - onChain.fetchedAt) / 1000))
+    : null
 
   return (
     <div className="page transparency">
@@ -54,11 +85,11 @@ export default function Transparency() {
             Recibido por el centro
           </p>
           <p className="hero-total-value">
-            <span className="hero-total-number">{formatUsdc(data.totalCentro)}</span>
+            <span className="hero-total-number">{formatUsdc(totalCentro)}</span>
             <span className="hero-total-unit">{label}</span>
           </p>
           <p className="hero-total-meta">
-            {data.pagos} {data.pagos === 1 ? 'pago registrado' : 'pagos registrados'}
+            {paymentCount} {paymentCount === 1 ? 'pago registrado' : 'pagos registrados'}
           </p>
         </div>
         <div className="summary-proof">
@@ -66,6 +97,16 @@ export default function Transparency() {
             Stellar es un registro público: cualquiera puede abrir el enlace de una operación y
             comprobar que la plata llegó a esta cuenta.
           </p>
+          {onChain ? (
+            <p className="chain-read-line">
+              Leído directamente de la red Stellar · actualizado hace {chainAgeSeconds} s
+            </p>
+          ) : (
+            <p className="chain-read-line">
+              No se pudo leer la red Stellar ahora; el total grande viene de la base de datos de
+              la aplicación.
+            </p>
+          )}
           {config?.explorerAccountUrl && data.centroPub && (
             <a
               className="tx-link tx-link-inverse summary-account-link"
@@ -116,7 +157,7 @@ export default function Transparency() {
           </div>
         ) : (
           <ul className="payment-list">
-            {data.lista.map((p) => (
+            {visiblePayments.map((p) => (
               <li key={p.txHash} className="payment-item">
                 <div className="payment-main">
                   <p className={isPlaceholder(p.nombre) ? 'placeholder-inline' : 'payment-merchant'}>

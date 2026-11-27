@@ -261,7 +261,13 @@ async function verifyHttpContract(visitor, paymentInfo) {
   const transparency = await getJson('/api/transparencia');
   assert(transparency.lista.some((payment) => payment.txHash === paymentInfo.payment.txHash), 'el pago no aparece en transparencia');
   assert(stroopsOf(transparency.totalCentro) >= stroopsOf('0.1125'), 'totalCentro de transparencia demasiado bajo');
-  console.log('Contrato HTTP verificado en config, stops, account, merchants, payments y transparencia');
+  assert(transparency.onChain?.source === 'horizon', `transparencia on-chain no vino de Horizon: ${transparency.onChain?.source}`);
+  assert(
+    transparency.onChain.lista.some((payment) => payment.txHash === paymentInfo.payment.txHash),
+    'el último pago e2e no aparece en onChain.lista'
+  );
+  assert(stroopsOf(transparency.onChain.totalRecibido) >= stroopsOf(transparency.totalCentro), 'totalRecibido on-chain menor que el total de la base');
+  console.log('Contrato HTTP verificado en config, stops, account, merchants, payments y transparencia on-chain');
 }
 
 async function main() {

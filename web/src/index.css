@@ -1078,6 +1078,13 @@ summary:focus-visible,
   line-height: 1.5;
 }
 
+.chain-read-line {
+  margin: 0;
+  color: var(--color-accent-on-dark);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
 .summary-account-link {
   align-self: flex-start;
   margin-top: 0;

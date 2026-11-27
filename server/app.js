@@ -11,6 +11,7 @@ import { AppError, invalidInput } from './errors.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from './payments.js';
 import { assetBalance, buildOnboarding, getAccountBalances, HUELLA, submitOnboarding, USDC } from './stellar.js';
+import { getCentroOnChain } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
 export const app = express();
@@ -137,7 +138,7 @@ app.get('/api/merchants/:id/payments', (req, res) => {
   res.json(listMerchantPayments(req.params.id, req.query.since));
 });
 
-app.get('/api/transparencia', (req, res) => {
+app.get('/api/transparencia', asyncRoute(async (req, res) => {
   const rows = listPayments();
   const byMerchant = new Map();
   let total = 0n;
@@ -153,6 +154,7 @@ app.get('/api/transparencia', (req, res) => {
     group.total += centroStroops;
     group.pagos += 1;
   }
+  const onChain = await getCentroOnChain();
   res.json({
     totalCentro: fmtStroops(total),
     pagos: rows.length,
@@ -169,9 +171,10 @@ app.get('/api/transparencia', (req, res) => {
       toCentro: row.toCentro,
       createdAt: row.createdAt
     })),
-    centroPub: config.centroPub
+    centroPub: config.centroPub,
+    onChain
   });
-});
+}));
 
 app.post('/api/demo/fund', asyncRoute(async (req, res) => {
   const { publicKey } = req.body || {};

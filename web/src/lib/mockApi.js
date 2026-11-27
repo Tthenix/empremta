@@ -329,6 +329,7 @@ export async function paySubmit({ signedXdr }) {
   payments.unshift({
     txHash,
     ref: entry.ref,
+    pubkey: entry.publicKey,
     amount: desglose.amount,
     discount: desglose.discount,
     toMerchant: desglose.toMerchant,
@@ -384,6 +385,19 @@ export async function getTransparencia() {
       createdAt: p.createdAt,
     })),
     centroPub: CENTRO,
+    onChain: {
+      source: 'horizon',
+      balanceUsdc: fmt(totalCentro),
+      totalRecibido: fmt(totalCentro),
+      pagos: payments.length,
+      lista: payments.map((p) => ({
+        txHash: p.txHash,
+        amount: p.toCentro,
+        from: p.pubkey,
+        createdAt: p.createdAt,
+      })),
+      fetchedAt: Date.now(),
+    },
   }
 }
 

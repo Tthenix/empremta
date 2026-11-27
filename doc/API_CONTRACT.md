@@ -82,8 +82,20 @@ The cash register polls every 3 s and matches by `ref`.
 { "totalCentro": "12.3400000", "pagos": 7,
   "porComercio": [ { "merchantId": "m1", "nombre": "...", "totalCentro": "8.0000000", "pagos": 4 } ],
   "lista": [ { "txHash", "merchantId", "nombre", "toCentro", "createdAt" } ],
-  "centroPub": "G..." }
+  "centroPub": "G...",
+  "onChain": { "source": "horizon", "balanceUsdc": "12.3400000", "totalRecibido": "12.3400000",
+    "pagos": 7,
+    "lista": [ { "txHash", "amount", "from", "createdAt" } ],
+    "fetchedAt": 1764200000000 } }
 ```
+
+`onChain` is optional and additive. When Horizon cannot be read it is:
+
+```json
+{ "source": "db-fallback", "reason": "No se pudo leer la red Stellar en este momento" }
+```
+
+The existing top-level fields always come from the application database. `onChain` is read from the public ledger: incoming `payment` operations to `centroPub` in the configured USDC asset, summed with integer stroops server-side and cached briefly to respect Horizon rate limits.
 
 ## POST /api/demo/fund
 Req `{ "publicKey" }` → `{ "txHash": "...", "amount": "5" }` (403 `DEMO_DISABLED`, 409 `ALREADY_FUNDED`)
