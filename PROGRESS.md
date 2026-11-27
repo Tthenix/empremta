@@ -83,3 +83,22 @@
 - Verificación visual adicional: la acción “Registrar mi visita” queda dentro del primer viewport desktop en `/v/pc`; foco visible definido con outline de 3 px; `prefers-reduced-motion` reduce transiciones/animaciones globalmente.
 - Detector mecánico Impeccable final sobre los archivos web modificados: `[]` (sin hallazgos).
 - Tabla numérica de contraste AA de la paleta de marca: `web/UX-AUDIT.md`, sección “Ronda 3 — integración de marca y verificación de contraste”.
+
+## Verificación ronda 4 — features verificables F1–F4 (2026-11-27)
+- Commits: `947d7ce feat(transparency)`, `b0b8d4a feat(issuer)`, `0b87f73 feat(stop)`, `3c6ca53 feat(qr)`.
+- `npm run build`: OK. Bundle inicial `index` 297.95 kB minificado / 94.64 kB gzip; CSS principal 21.42 kB / 4.55 kB gzip; `wallet` diferido 292.92 kB / 71.26 kB gzip; `StopMap` diferido 153.77 kB / 45.16 kB gzip.
+- `npm run e2e -- --http`: OK contra testnet real. Resultado final del script: `M1+M2+M3+M4+F1+F2 HTTP OK`.
+- Cuenta visitante principal: https://stellar.expert/explorer/testnet/account/GBP6QL5F6BK3XEUHZJBRAEVH75OG64AJZBJ2VSIGTGQZRB4BYJ3G6RCJ
+- Onboarding patrocinado: https://stellar.expert/explorer/testnet/tx/fe30ee6e603f6b93c68217b9c7725745223ae2aeda9e0acb8e51a109da13ff94
+- Visitas: https://stellar.expert/explorer/testnet/tx/672a44e02b39d4d69c64d70d807661d1bdfa6b1fbbb5417914040c8a2f5639b1 · https://stellar.expert/explorer/testnet/tx/cca5ffe38d99e1c17b7ec30bb5e6e6d6cc2430f3054df7e8d4c9d0a9a5fca9dd · https://stellar.expert/explorer/testnet/tx/62ea03938ce28eae679c6a23e9fbebe10d7586ae9421c7c88e9ad8f109ae25ad
+- Fondeo demo: https://stellar.expert/explorer/testnet/tx/47aa783c8a8e3b16aa6aaa6b45867b2bd053444f822eab105421d4c4d3411afc
+- Pago atómico con split, quema y fee-bump: https://stellar.expert/explorer/testnet/tx/2e1523d33c550867131bc528e59e7eb6a8a8f2bc49b8f07bd871346d3509193d
+- F1 verificado por e2e: `/api/transparencia` respondió `onChain.source === "horizon"`; el último pago e2e apareció en `onChain.lista` y el total on-chain cubrió el total del centro.
+- Cuenta de revocación: https://stellar.expert/explorer/testnet/account/GDGIGY2OHHPPZUDCQVC4SGJ2IVHIT5BKYI3WBUGSKFHOGCBSXD5GWR5U
+- Revocación HUELLA: https://stellar.expert/explorer/testnet/tx/7e5ef6e4812e089d9b2bd66d420774c9038d10f793aee86f8dc7c84eec7ad193
+- Restauración HUELLA: https://stellar.expert/explorer/testnet/tx/c752d5de015fc37196426d077de5219d8c00703aedb523910591027f4a8b78a4
+- Visita posterior a restauración: https://stellar.expert/explorer/testnet/tx/05479a4b36e06264dd1a02e31c2dc050ebff9486e3ae103b9cdc0692fa30d951
+- F2 verificado por e2e: la cuenta suspendida apareció en la traza pública; visita y pago con Huellas fueron rechazados con `ACCOUNT_REVOKED`; tras `--restore`, una visita real volvió a minter 10 HUELLA.
+- Carteles generados con `PUBLIC_BASE_URL=https://empremta-production.up.railway.app npm run qr`. `qr-paradas-ruta-memoria.pdf` tiene 1 página y `carteles-ruta-memoria.pdf` tiene 3 páginas.
+- Ambos PDF fueron renderizados e inspeccionados. Decodificación QR desde el PDF original: `/v/pc?c=607fa0c7fbacfcbe`, `/v/plu?c=8674be7638a7b6cb`, `/v/coq?c=fa1850502e99d539`, todos bajo `https://empremta-production.up.railway.app`. Decodificación equivalente desde los 3 carteles individuales.
+- Recorrido visual exacto por CDP en `/transparencia` y `/v/pc`: 375×812 (`innerWidth=375`, `scrollWidth=375`, sin overflow horizontal) y 1280×900 (sin overflow horizontal). En `/v/pc` el botón de escucha no aparece porque el relato sigue placeholder, como exige la regla de no leer placeholders.
