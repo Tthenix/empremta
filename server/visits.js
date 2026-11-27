@@ -24,6 +24,13 @@ export function haversineM(lat1, lng1, lat2, lng2) {
   return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function signatureBytes(signature) {
+  if (/^\d+(,\d+){63}$/.test(signature)) {
+    return Buffer.from(signature.split(',').map((part) => Number(part)));
+  }
+  return Buffer.from(signature, 'base64');
+}
+
 function validateSignature({ publicKey, stopId, ts, signature }) {
   if (!StrKey.isValidEd25519PublicKey(publicKey)) throw invalidInput('La clave pública no es válida');
   if (typeof signature !== 'string' || signature.length < 16) {
@@ -32,7 +39,8 @@ function validateSignature({ publicKey, stopId, ts, signature }) {
   const message = Buffer.from(`visita:${stopId}:${ts}`, 'utf8');
   let valid = false;
   try {
-    valid = Keypair.fromPublicKey(publicKey).verify(message, Buffer.from(signature, 'base64'));
+    const bytes = signatureBytes(signature);
+    valid = bytes.length === 64 && Keypair.fromPublicKey(publicKey).verify(message, bytes);
   } catch {
     valid = false;
   }

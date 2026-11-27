@@ -155,7 +155,10 @@ async function verifyOnboarding(visitor) {
 
 function visitPayload(visitor, stop) {
   const ts = Date.now();
-  const signature = Buffer.from(visitor.sign(Buffer.from(`visita:${stop.id}:${ts}`, 'utf8'))).toString('base64');
+  const rawSignature = visitor.sign(Buffer.from(`visita:${stop.id}:${ts}`, 'utf8'));
+  const signature = process.env.E2E_COMMA_SIG === '1'
+    ? rawSignature.toString('base64')
+    : Buffer.from(rawSignature).toString('base64');
   return {
     publicKey: visitor.publicKey(),
     stopId: stop.id,
