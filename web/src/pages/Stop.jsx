@@ -37,6 +37,7 @@ export default function Stop() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
+  const [progress, setProgress] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -61,13 +62,17 @@ export default function Stop() {
     setError('')
     setBusy(true)
     try {
+      setProgress('Preparando la billetera segura de este celular…')
       await ensureOnboarded()
+      setProgress('Consultando tu ubicación para verificar que estás en el lugar…')
       const { lat, lng } = await getGeo()
+      setProgress('Registrando la visita. Puede tardar unos segundos…')
       const result = await registerVisit({ stopId, code, lat, lng })
       setDone(result)
     } catch (e) {
       setError(humanError(e))
     } finally {
+      setProgress('')
       setBusy(false)
     }
   }
@@ -78,11 +83,11 @@ export default function Stop() {
 
   return (
     <div className="page stop">
-      <p className="eyebrow">{stop.lugar}</p>
       <h1>{stop.nombre}</h1>
+      <p className="stop-location">{stop.lugar}</p>
 
       {stop.foto ? (
-        <img className="stop-photo" src={stop.foto} alt="" />
+        <img className="stop-photo" src={stop.foto} alt={`Vista de ${stop.nombre}`} />
       ) : (
         <div className="photo-placeholder" aria-hidden="true" />
       )}
@@ -99,7 +104,7 @@ export default function Stop() {
       </section>
 
       {done ? (
-        <div className="success-box" role="status">
+        <div className="success-box" role="status" aria-live="polite" aria-atomic="true">
           <p>Tu visita quedó registrada.</p>
           <p>
             Huellas ahora: <strong>{Number(done.huellas).toFixed(0)}</strong>
@@ -117,15 +122,19 @@ export default function Stop() {
       ) : code ? (
         <>
           <ErrorMsg>{error}</ErrorMsg>
-          <button type="button" className="btn btn-primary" onClick={onRegister} disabled={busy}>
+          <button type="button" className="btn btn-primary btn-block" onClick={onRegister} disabled={busy}>
             {busy ? 'Registrando…' : 'Registrar mi visita'}
           </button>
+          <div className="progress-note" role="status" aria-live="polite" aria-atomic="true">
+            {progress}
+          </div>
           <p className="hint">
-            Se crea una billetera en tu celular. La clave no sale del navegador.
+            La primera vez se crea una billetera segura en este celular. No tenés que escribir
+            claves ni instalar nada.
           </p>
         </>
       ) : (
-        <p className="hint">
+        <p className="scan-note">
           Para registrar tu visita, escaneá con la cámara del celular el código QR que está en
           este lugar.
         </p>

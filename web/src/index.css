@@ -725,3 +725,23 @@ input:focus-visible,
     height: 300px;
   }
 }
+
+.stop-location {
+  margin-top: -0.45rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.progress-note {
+  min-height: 1.8rem;
+  margin-top: 0.6rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scan-note {
+  border-left: 4px solid var(--celeste-deep);
+  background: var(--celeste-soft);
+  padding: 0.75rem;
+  font-weight: 600;
+}
