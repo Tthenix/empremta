@@ -43,41 +43,44 @@ export default function Transparency() {
       <header className="transparency-hero">
         <h1>Transparencia</h1>
         <p className="lede">
-          Cada pago de la ruta destina una parte al {centroLabel}. Acá se puede ver el total y
-          cada transferencia en la red Stellar (testnet).
-        </p>
-        <p className="verification-note">
-          Stellar es un registro público: cualquiera puede abrir el enlace de una operación y
-          comprobar que la plata llegó a esta cuenta.
+          Cada pago de la ruta destina una parte al {centroLabel}. El total y cada transferencia
+          quedan visibles en la red Stellar (testnet).
         </p>
       </header>
 
       <section className="summary-card" aria-labelledby="total-centro-title">
-        <div>
+        <div className="summary-total">
           <p className="summary-label" id="total-centro-title">
             Recibido por el centro
           </p>
           <p className="hero-total-value">
-            {formatUsdc(data.totalCentro)} <span>{label}</span>
+            <span className="hero-total-number">{formatUsdc(data.totalCentro)}</span>
+            <span className="hero-total-unit">{label}</span>
           </p>
           <p className="hero-total-meta">
             {data.pagos} {data.pagos === 1 ? 'pago registrado' : 'pagos registrados'}
           </p>
         </div>
-        {config?.explorerAccountUrl && data.centroPub && (
-          <a
-            className="tx-link summary-account-link"
-            href={`${config.explorerAccountUrl}${data.centroPub}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Ver cuenta del centro en Stellar
-          </a>
-        )}
+        <div className="summary-proof">
+          <p className="verification-note">
+            Stellar es un registro público: cualquiera puede abrir el enlace de una operación y
+            comprobar que la plata llegó a esta cuenta.
+          </p>
+          {config?.explorerAccountUrl && data.centroPub && (
+            <a
+              className="tx-link tx-link-inverse summary-account-link"
+              href={`${config.explorerAccountUrl}${data.centroPub}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver cuenta del centro en Stellar
+            </a>
+          )}
+        </div>
       </section>
 
-      <section className="transparency-section">
-        <h2>Por comercio</h2>
+      <section className="transparency-section" aria-labelledby="por-comercio-title">
+        <h2 id="por-comercio-title">Por comercio</h2>
         {!data.porComercio?.length ? (
           <div className="empty-state">
             <p className="empty-title">Todavía no hay pagos registrados</p>
@@ -104,8 +107,8 @@ export default function Transparency() {
         )}
       </section>
 
-      <section className="transparency-section">
-        <h2>Pagos verificables</h2>
+      <section className="transparency-section" aria-labelledby="pagos-verificables-title">
+        <h2 id="pagos-verificables-title">Pagos verificables</h2>
         {!hasPayments ? (
           <div className="empty-state">
             <p className="empty-title">Todavía no hay pagos registrados</p>

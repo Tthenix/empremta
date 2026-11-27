@@ -48,11 +48,32 @@ export default function Home() {
 
   return (
     <div className="page home">
-      <h1>Ruta de la Memoria · Malvinas · Mendoza</h1>
-      <p className="lede">
-        Un recorrido por lugares de memoria. En cada parada, el relato de quienes estuvieron ahí
-        y el registro de tu paso, que vuelve en apoyo concreto a los veteranos.
-      </p>
+      <header className="home-hero">
+        <div className="home-hero-copy">
+          <h1>Una ruta para caminar la memoria</h1>
+          <p className="lede">
+            Recorré lugares de memoria de Malvinas en Mendoza, leé el relato de cada parada y
+            registrá tu paso; ese recorrido vuelve en apoyo concreto a los veteranos.
+          </p>
+          <div className="hero-actions">
+            <a className="btn btn-primary" href="#paradas">
+              Ver las paradas
+            </a>
+          </div>
+        </div>
+        <figure className="brand-hero-card">
+          <img
+            src="/brand/empremta-vertical-color.svg"
+            alt="Empremta"
+            width="622"
+            height="572"
+            className="brand-hero-logo"
+          />
+          <figcaption className="brand-hero-caption">
+            El isotipo es una huella construida con el contorno real de las islas Malvinas.
+          </figcaption>
+        </figure>
+      </header>
 
       <section className="progress-card" aria-label="Tu progreso">
         <p>
@@ -73,14 +94,16 @@ export default function Home() {
         </Link>
       </section>
 
-      <section>
-        <h2>Paradas</h2>
+      <section className="home-stops" id="paradas" aria-labelledby="paradas-title">
+        <h2 id="paradas-title">Paradas</h2>
         <ul className="stop-list">
           {stops.map((s) => (
             <li key={s.id}>
               <Link to={`/v/${s.id}`}>
-                <span className="stop-name">{s.nombre}</span>
-                <span className="stop-place">{s.lugar}</span>
+                <span className="stop-copy">
+                  <span className="stop-name">{s.nombre}</span>
+                  <span className="stop-place">{s.lugar}</span>
+                </span>
               </Link>
             </li>
           ))}
