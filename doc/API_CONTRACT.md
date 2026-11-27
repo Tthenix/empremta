@@ -10,7 +10,7 @@ All amounts are **strings** with up to 7 decimals (e.g. `"2.5000000"` or `"2.50"
 ```
 
 with HTTP 4xx/5xx. `message` is already human-readable Rioplatense Spanish; the UI shows it as-is.
-Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `ACCOUNT_REVOKED`, `ALREADY_ONBOARDED`, `HORIZON_ERROR`, `HORIZON_UNAVAILABLE`, `RATE_LIMITED`, `NOT_FOUND`.
+Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `ACCOUNT_REVOKED`, `ALREADY_ONBOARDED`, `HORIZON_ERROR`, `HORIZON_UNAVAILABLE`, `RATE_LIMITED`, `NOT_ENOUGH_VISITS`, `NOT_FOUND`.
 
 ## GET /api/config
 ```json
@@ -19,6 +19,7 @@ Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `T
   "huellaAsset": { "code": "HUELLA", "issuer": "G..." },
   "demoMode": true, "huellasPorVisita": 10, "costoCanje": 30,
   "descuentoPct": 10, "descuentoMaxUsdc": "1",
+  "arsPerUsdc": "1400", "aportePct": null, "descuentoMaxArs": "2000",
   "explorerTxUrl": "https://stellar.expert/explorer/testnet/tx/",
   "explorerAccountUrl": "https://stellar.expert/explorer/testnet/account/",
   "centroLabel": "Centro de Veteranos (cuenta de demostración)",
@@ -39,6 +40,7 @@ Same object plus `"historiaCorta"`, `"historiaLarga"`, `"fuentesLugar"` (`[{ "la
 ## POST /api/onboard/build
 Req `{ "publicKey": "G..." }` → `{ "xdr": "AAAA..." }`.
 If the account already exists and is onboarded → `200 { "alreadyOnboarded": true }`.
+New sponsored accounts are limited per client IP per UTC day (`MAX_NEW_WALLETS_PER_IP_PER_DAY`, default 5); excess → 429 `RATE_LIMITED`. Loopback clients are exempt so the local e2e can create fresh wallets.
 
 ## POST /api/onboard/submit
 Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "abc..." }`
@@ -66,12 +68,29 @@ Req `{ "publicKey", "merchantId": "m1", "amount": "2.50", "ref": "AB12CD34", "us
                 "huellasBurned": 30, "pctCentro": 5,
                 "merchant": { "id": "m1", "nombre": "..." } } }
 ```
-`useHuellas: true` with insufficient Huellas → discount `"0"`, `huellasBurned: 0` (not an error).
+`useHuellas: true` requires the same wallet to have at least `costoCanje / huellasPorVisita` distinct visits recorded in the application DB; otherwise → 400 `NOT_ENOUGH_VISITS` (`Te faltan lugares por visitar para canjear`). With enough visits but insufficient Huellas → discount `"0"`, `huellasBurned: 0` (not an error).
 `useHuellas: true` from a suspended HUELLA trustline → 403 `ACCOUNT_REVOKED` with the same human message as `/api/visit`.
 
 ## POST /api/pay/submit
 Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "...", "desglose": { ...same as build } }`
 Both `/api/pay/build` and `/api/pay/submit` return 409 `ALREADY_PAID` when that merchant already received a payment with the same `ref`.
+
+
+## POST /api/redeem/build
+Req `{ "publicKey", "merchantId": "m1", "amountArs": "10000", "ref": "AB12CD34" }` for the primary canje flow. The visitor pays the merchant outside the app; this transaction only burns Huellas and makes the merchant fund the Centro.
+```json
+{ "xdr": "AAAA...",
+  "desglose": { "amountArs": "10000.00", "discountArs": "1000.00", "totalArs": "9000.00",
+                "aporteUsdc": "0.3214285", "arsPerUsdc": "1400", "aportePct": 5,
+                "huellasBurned": 30, "merchant": { "id": "m1", "nombre": "..." } } }
+```
+The built classic transaction has source `publicKey`, memo `canje:<ref>`, a HUELLA payment of `costoCanje` to the issuer (burn), and a USDC payment to `centroPub` whose operation source is the merchant account. ARS→USDC conversion uses integer scaled arithmetic and floors to 7 decimals. Amounts producing a zero contribution → `INVALID_INPUT`. Missing own visits → 400 `NOT_ENOUGH_VISITS`; insufficient HUELLA → `INSUFFICIENT_BALANCE`; insufficient merchant USDC → `MERCHANT_NO_FUNDS`; duplicate merchant `ref` → 409 `ALREADY_PAID`.
+
+## POST /api/redeem/submit
+Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "...", "desglose": { ...same as build } }`. The server accepts only the exact hash it built, co-signs as custodial merchant, issuer fee-bumps, and persists the redemption atomically after submission.
+
+## GET /api/merchants/:id/redemptions?since=<ms epoch, optional>
+`[ { "txHash", "ref", "amountArs", "discountArs", "aporteUsdc", "huellasBurned", "createdAt" } ]`, newest first.
 
 ## GET /api/merchants
 `[ { "id": "m1", "nombre": "...", "direccion": "...", "pctCentro": 5, "lat": null, "lng": null, "pub": "G..." } ]`
@@ -99,7 +118,7 @@ The cash register polls every 3 s and matches by `ref`.
 { "source": "db-fallback", "reason": "No se pudo leer la red Stellar en este momento" }
 ```
 
-The existing top-level fields always come from the application database. `onChain` is read from the public ledger: incoming `payment` operations to `centroPub` in the configured USDC asset, summed with integer stroops server-side and cached briefly to respect Horizon rate limits.
+The existing top-level fields always come from the application database and now include both direct USDC payments (`tipo: "pago"`) and merchant-funded redemptions (`tipo: "canje"`, concept `Aporte del comercio por canje`). `onChain` is read from the public ledger: incoming `payment` operations to `centroPub` in the configured USDC asset, summed with integer stroops server-side and cached briefly to respect Horizon rate limits.
 
 `revocaciones` is optional and additive. It contains currently suspended HUELLA trustlines whose latest issuer flag operation on Horizon clears `authorized`; restored accounts disappear after their restore operation becomes the latest one.
 
@@ -112,3 +131,19 @@ Additive non-JSON metadata endpoint. Responds `200 text/plain; charset=utf-8` wi
 ## QR / URLs
 - Stop QR: `${PUBLIC_BASE_URL}/v/${stopId}?c=${HMAC_SHA256(QR_SECRET, stopId).hex.slice(0,16)}`
 - Payment QR: `${PUBLIC_BASE_URL}/pagar?m=${merchantId}&monto=${amount}&ref=${ref}`
+
+
+## POST /api/pollar/huella-access/build
+Demo-only additive endpoint for the optional Pollar backup. Req `{ "publicKey": "G..." }` → `{ "xdr": "AAAA..." }` or `{ "alreadyReady": true }`. The server-built XDR adds the HUELLA trustline when missing and authorizes it with an issuer-sourced `setTrustLineFlags` operation.
+
+## POST /api/pollar/huella-access/submit
+Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "..." }`. Server verifies its own hash, co-signs issuer and fee-bumps.
+
+## POST /api/pollar/huella-transfer/build
+Req `{ "publicKey", "destination", "amount" }` → `{ "xdr": "AAAA..." }`. Builds a classic HUELLA payment from the local visitor wallet to the Pollar backup wallet; server validates HUELLA access and sufficient balance.
+
+## POST /api/pollar/huella-transfer/submit
+Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "..." }`. Server verifies its own hash and fee-bumps; it does not sign the visitor operation.
+
+These Pollar endpoints are demo/testnet scaffolding. Production must authenticate the Pollar user/session server-side before authorizing assets or building backup transfers.
+

@@ -1,8 +1,9 @@
 import { config } from './config.js';
 import { getMerchant } from './content.js';
 import { getDemoFund, hasPaymentRef, recordDemoFund, recordPayment } from './db.js';
+import { assertCanjeVisits } from './eligibility.js';
 import { AppError, invalidInput } from './errors.js';
-import { buildPayment, demoFund, submitPayment, verifyBuiltTx } from './stellar.js';
+import { assertVisitorHuellaAccess, buildPayment, demoFund, submitPayment, verifyBuiltTx } from './stellar.js';
 
 function peekPaymentMeta(signedXdr) {
   try {
@@ -47,6 +48,10 @@ export async function buildMerchantPayment(input) {
   const merchant = getMerchant(input?.merchantId);
   if (!merchant || !merchant.pub) throw invalidInput('El comercio no existe');
   if (typeof input.ref === 'string' && hasPaymentRef(merchant.id, input.ref)) throw alreadyPaid();
+  if (input.useHuellas) {
+    await assertVisitorHuellaAccess(input.publicKey);
+    assertCanjeVisits(input.publicKey);
+  }
   return buildPayment({
     publicKey: input.publicKey,
     merchant,

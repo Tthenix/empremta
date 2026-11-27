@@ -11,7 +11,7 @@ import {
 import { config } from './config.js';
 import { AppError, horizonToAppError, invalidInput } from './errors.js';
 import { configureHorizonTimeouts, horizonReadWithRetry, isAmbiguousSubmissionError } from './horizon-utils.js';
-import { decimalToStroopsUnchecked, fmtStroops, isAmountString, minBigInt, toStroops } from './money.js';
+import { decimalToScaled, decimalToStroopsUnchecked, fmtScaled, fmtStroops, isAmountString, minBigInt, toStroops } from './money.js';
 
 configureHorizonTimeouts();
 
@@ -92,6 +92,21 @@ export function assetBalance(account, asset) {
     balance.asset_code === asset.code &&
     balance.asset_issuer === asset.issuer
   )) || null;
+}
+
+// Checks on-chain that the visitor is onboarded and not revoked, so a revoked
+// account gets ACCOUNT_REVOKED before any eligibility rule (e.g. visit count).
+export async function assertVisitorHuellaAccess(publicKey) {
+  let account;
+  try {
+    account = await loadAccount(publicKey);
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
+    }
+    throw horizonToAppError(err);
+  }
+  return assertHuellaAccess(account);
 }
 
 export function assertHuellaAccess(account) {
@@ -361,6 +376,232 @@ export async function submitPayment(signedXdr) {
     const result = await submitTransactionWithRecovery(feeBump);
     forgetTx(hash);
     return { txHash: result.hash, desglose: entry.meta.desglose, meta: entry.meta };
+  } catch (err) {
+    throw horizonToAppError(err);
+  }
+}
+
+function merchantKeypair(merchant) {
+  const secret = process.env[merchant.secretEnv];
+  if (!secret) throw new Error(`Falta ${merchant.secretEnv} en .env`);
+  return Keypair.fromSecret(secret);
+}
+
+function parseConfigInt(value, label) {
+  if (!Number.isInteger(value) || value < 0 || value > 100) {
+    throw new Error(`${label} inválido: tiene que ser un entero entre 0 y 100`);
+  }
+  return BigInt(value);
+}
+
+function arsUnits(value, label) {
+  try {
+    return decimalToScaled(String(value), 2, label);
+  } catch {
+    throw invalidInput('El monto en pesos no es válido');
+  }
+}
+
+function configArsUnits(value, label) {
+  try {
+    return decimalToScaled(String(value), 2, label);
+  } catch {
+    throw new Error(`${label} inválido`);
+  }
+}
+
+function arsPerUsdcScaled() {
+  try {
+    return decimalToScaled(String(config.arsPerUsdc), 4, 'ARS_PER_USDC');
+  } catch {
+    throw new Error('ARS_PER_USDC inválido');
+  }
+}
+
+export function splitRedemption({ amountArs, merchantPctCentro }) {
+  const amountCents = arsUnits(amountArs, 'amountArs');
+  if (amountCents <= 0n || amountCents >= 1_000_000_000n) {
+    throw invalidInput('El monto en pesos tiene que ser mayor a 0');
+  }
+  const discountPct = parseConfigInt(config.descuentoPct, 'DESCUENTO_PCT');
+  const aportePct = parseConfigInt(config.aportePct ?? merchantPctCentro, 'APORTE_PCT');
+  if (aportePct <= 0n) throw new Error('APORTE_PCT tiene que ser mayor a 0');
+  const maxDiscountCents = configArsUnits(config.descuentoMaxArs, 'DESCUENTO_MAX_ARS');
+  const discountCents = minBigInt(amountCents * discountPct / 100n, maxDiscountCents);
+  const totalCents = amountCents - discountCents;
+  const rateScaled = arsPerUsdcScaled();
+  if (rateScaled <= 0n) throw new Error('ARS_PER_USDC tiene que ser mayor a 0');
+
+  // cents * pct/100 * (1 USDC / rate ARS) * 10^7 stroops; rate carries 4 decimales.
+  const aporteStroops = totalCents * aportePct * 10_000_000n * 10_000n /
+    (100n * 100n * rateScaled);
+  if (aporteStroops <= 0n) {
+    throw invalidInput('El monto es demasiado chico para calcular el aporte al Centro');
+  }
+  return {
+    amountCents,
+    discountCents,
+    totalCents,
+    aporteStroops,
+    aportePct: Number(aportePct),
+    huellasBurned: config.costoCanje
+  };
+}
+
+export function makeRedemptionDesglose({ split, merchant }) {
+  return {
+    amountArs: fmtScaled(split.amountCents, 2),
+    discountArs: fmtScaled(split.discountCents, 2),
+    totalArs: fmtScaled(split.totalCents, 2),
+    aporteUsdc: fmtStroops(split.aporteStroops),
+    arsPerUsdc: String(config.arsPerUsdc),
+    aportePct: split.aportePct,
+    huellasBurned: split.huellasBurned,
+    merchant: { id: merchant.id, nombre: merchant.nombre }
+  };
+}
+
+export async function buildRedemption({ publicKey, merchant, amountArs, ref }) {
+  assertPublicKey(publicKey);
+  if (!merchant?.pub) throw invalidInput('El comercio no es válido');
+  if (!/^[A-Za-z0-9]{8}$/.test(ref || '')) throw invalidInput('La referencia tiene que tener 8 caracteres alfanuméricos');
+  const balances = await getAccountBalances(publicKey);
+  if (!balances.exists) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
+  assertHuellaAccess(balances.account);
+  const canjeStroops = BigInt(config.costoCanje) * 10_000_000n;
+  if (decimalToStroopsUnchecked(balances.huella || '0') < canjeStroops) {
+    throw new AppError('INSUFFICIENT_BALANCE', 'No tenés Huellas suficientes para canjear', 400);
+  }
+
+  const split = splitRedemption({ amountArs, merchantPctCentro: merchant.pctCentro });
+  const desglose = makeRedemptionDesglose({ split, merchant });
+  const merchantBalances = await getAccountBalances(merchant.pub);
+  if (!merchantBalances.exists || decimalToStroopsUnchecked(merchantBalances.usdc || '0') < split.aporteStroops) {
+    throw new AppError('MERCHANT_NO_FUNDS', 'El comercio no tiene saldo para el aporte', 400);
+  }
+
+  const visitorAccount = await loadAccount(publicKey);
+  const tx = new TransactionBuilder(visitorAccount, {
+    fee: '100',
+    networkPassphrase: Networks.TESTNET
+  })
+    .addOperation(Operation.payment({
+      destination: config.issuerPub,
+      asset: HUELLA,
+      amount: String(config.costoCanje)
+    }))
+    .addOperation(Operation.payment({
+      destination: config.centroPub,
+      asset: USDC,
+      amount: fmtStroops(split.aporteStroops),
+      source: merchant.pub
+    }))
+    .addMemo(Memo.text(`canje:${ref}`))
+    .setTimeout(300)
+    .build();
+  rememberTx(tx, 'redeem', { publicKey, merchantId: merchant.id, ref, desglose });
+  return { xdr: tx.toXDR(), desglose };
+}
+
+export async function submitRedemption(signedXdr, merchant) {
+  const { tx, hash, entry } = verifyBuiltTx(signedXdr, 'redeem');
+  try {
+    tx.sign(merchantKeypair(merchant));
+    const feeBump = TransactionBuilder.buildFeeBumpTransaction(
+      issuerKeypair(),
+      '1000',
+      tx,
+      Networks.TESTNET
+    );
+    feeBump.sign(issuerKeypair());
+    const result = await submitTransactionWithRecovery(feeBump);
+    forgetTx(hash);
+    return { txHash: result.hash, desglose: entry.meta.desglose, meta: entry.meta };
+  } catch (err) {
+    throw horizonToAppError(err);
+  }
+}
+
+export async function buildPollarHuellaAccess(publicKey) {
+  assertPublicKey(publicKey);
+  const account = await loadAccount(publicKey);
+  const trustline = assetBalance(account, HUELLA);
+  if (trustline && trustline.is_authorized !== false) return { alreadyReady: true };
+  const tx = new TransactionBuilder(account, {
+    fee: '100',
+    networkPassphrase: Networks.TESTNET
+  });
+  if (!trustline) tx.addOperation(Operation.changeTrust({ asset: HUELLA }));
+  tx.addOperation(Operation.setTrustLineFlags({
+    trustor: publicKey,
+    asset: HUELLA,
+    source: config.issuerPub,
+    flags: { authorized: true }
+  }));
+  const built = tx.setTimeout(300).build();
+  rememberTx(built, 'pollar-access', { publicKey });
+  return { xdr: built.toXDR() };
+}
+
+export async function submitPollarHuellaAccess(signedXdr) {
+  const { tx, hash } = verifyBuiltTx(signedXdr, 'pollar-access');
+  try {
+    tx.sign(issuerKeypair());
+    const feeBump = TransactionBuilder.buildFeeBumpTransaction(
+      issuerKeypair(),
+      '1000',
+      tx,
+      Networks.TESTNET
+    );
+    feeBump.sign(issuerKeypair());
+    const result = await submitTransactionWithRecovery(feeBump);
+    forgetTx(hash);
+    return { txHash: result.hash };
+  } catch (err) {
+    throw horizonToAppError(err);
+  }
+}
+
+export async function buildHuellaTransfer({ publicKey, destination, amount }) {
+  assertPublicKey(publicKey);
+  assertPublicKey(destination);
+  if (!isAmountString(amount) || decimalToStroopsUnchecked(amount) <= 0n) {
+    throw invalidInput('El monto de Huellas no es válido');
+  }
+  const account = await loadAccount(publicKey);
+  const trustline = assertHuellaAccess(account);
+  if (decimalToStroopsUnchecked(trustline.balance) < decimalToStroopsUnchecked(amount)) {
+    throw new AppError('INSUFFICIENT_BALANCE', 'No tenés Huellas suficientes para transferir', 400);
+  }
+  const destinationAccount = await loadAccountOrNull(destination);
+  if (!destinationAccount || !assetBalance(destinationAccount, HUELLA) || assetBalance(destinationAccount, HUELLA).is_authorized === false) {
+    throw new AppError('NOT_ONBOARDED', 'La billetera de respaldo todavía no está autorizada para Huellas', 400);
+  }
+  const tx = new TransactionBuilder(account, {
+    fee: '100',
+    networkPassphrase: Networks.TESTNET
+  })
+    .addOperation(Operation.payment({ destination, asset: HUELLA, amount }))
+    .addMemo(Memo.text('backup-huellas'))
+    .setTimeout(300)
+    .build();
+  rememberTx(tx, 'huella-transfer', { publicKey, destination, amount });
+  return { xdr: tx.toXDR() };
+}
+
+export async function submitHuellaTransfer(signedXdr) {
+  const { tx, hash, entry } = verifyBuiltTx(signedXdr, 'huella-transfer');
+  try {
+    const feeBump = TransactionBuilder.buildFeeBumpTransaction(
+      issuerKeypair(),
+      '1000',
+      tx,
+      Networks.TESTNET
+    );
+    feeBump.sign(issuerKeypair());
+    const result = await submitTransactionWithRecovery(feeBump);
+    forgetTx(hash);
+    return { txHash: result.hash, meta: entry.meta };
   } catch (err) {
     throw horizonToAppError(err);
   }

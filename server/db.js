@@ -41,6 +41,18 @@ CREATE TABLE IF NOT EXISTS demo_funds (
   tx_hash TEXT,
   created_at INTEGER
 );
+CREATE TABLE IF NOT EXISTS redemptions (
+  tx_hash TEXT PRIMARY KEY,
+  ref TEXT,
+  pubkey TEXT,
+  merchant_id TEXT,
+  amount_ars TEXT,
+  discount_ars TEXT,
+  aporte_usdc TEXT,
+  huellas_burned INTEGER,
+  created_at INTEGER
+);
+CREATE UNIQUE INDEX IF NOT EXISTS redemptions_merchant_ref ON redemptions(merchant_id, ref);
 `);
 
 export function recordVisitor(pubkey, onboardTx) {
@@ -104,6 +116,46 @@ export function listPayments() {
   return db.prepare(`SELECT tx_hash AS txHash, ref, pubkey, merchant_id AS merchantId, amount, discount,
     to_merchant AS toMerchant, to_centro AS toCentro, huellas_burned AS huellasBurned, created_at AS createdAt
     FROM payments ORDER BY created_at DESC`).all();
+}
+
+export function recordRedemption({ txHash, ref, pubkey, merchantId, desglose }) {
+  db.prepare(`INSERT INTO redemptions (
+    tx_hash, ref, pubkey, merchant_id, amount_ars, discount_ars, aporte_usdc, huellas_burned, created_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    txHash,
+    ref,
+    pubkey,
+    merchantId,
+    desglose.amountArs,
+    desglose.discountArs,
+    desglose.aporteUsdc,
+    desglose.huellasBurned,
+    Date.now()
+  );
+}
+
+export function hasRedemptionRef(merchantId, ref) {
+  return Boolean(db.prepare('SELECT 1 FROM redemptions WHERE merchant_id = ? AND ref = ?').get(merchantId, ref));
+}
+
+export function listMerchantRedemptions(merchantId, since = null) {
+  const params = [merchantId];
+  let sql = `SELECT tx_hash AS txHash, ref, amount_ars AS amountArs, discount_ars AS discountArs,
+    aporte_usdc AS aporteUsdc, huellas_burned AS huellasBurned, created_at AS createdAt
+    FROM redemptions WHERE merchant_id = ?`;
+  if (since !== null && since !== undefined && Number.isFinite(Number(since))) {
+    sql += ' AND created_at > ?';
+    params.push(Number(since));
+  }
+  sql += ' ORDER BY created_at DESC';
+  return db.prepare(sql).all(...params);
+}
+
+export function listRedemptions() {
+  return db.prepare(`SELECT tx_hash AS txHash, ref, pubkey, merchant_id AS merchantId,
+    amount_ars AS amountArs, discount_ars AS discountArs, aporte_usdc AS aporteUsdc,
+    huellas_burned AS huellasBurned, created_at AS createdAt
+    FROM redemptions ORDER BY created_at DESC`).all();
 }
 
 export function recordDemoFund(pubkey, txHash) {

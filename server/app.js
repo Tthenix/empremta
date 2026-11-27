@@ -6,16 +6,18 @@ import rateLimit from 'express-rate-limit';
 import { StrKey } from '@stellar/stellar-sdk';
 import { config } from './config.js';
 import { getMerchant, getStop, merchantListItem, merchants, stopDetail, stopListItem, stops } from './content.js';
-import { getDemoFund, getVisitor, listMerchantPayments, listPayments, recordVisitor } from './db.js';
+import { getDemoFund, getVisitor, listMerchantPayments, listMerchantRedemptions, listPayments, listRedemptions, recordVisitor } from './db.js';
 import { AppError, invalidInput } from './errors.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from './payments.js';
-import { assetBalance, buildOnboarding, getAccountBalances, HUELLA, submitOnboarding, USDC } from './stellar.js';
+import { buildMerchantRedemption, submitMerchantRedemption } from './redemptions.js';
+import { assetBalance, buildHuellaTransfer, buildOnboarding, buildPollarHuellaAccess, getAccountBalances, HUELLA, submitHuellaTransfer, submitOnboarding, submitPollarHuellaAccess, USDC } from './stellar.js';
 import { buildStellarToml } from './stellarToml.js';
 import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
 export const app = express();
+app.set('trust proxy', true);
 
 app.use(cors());
 app.use(express.json({ limit: '100kb' }));
@@ -32,12 +34,38 @@ const postLimiter = rateLimit({
   }
 });
 app.use('/api', (req, res, next) => {
+  if (isLocalhostIp(req.ip)) return next();
   if (req.method === 'POST') return postLimiter(req, res, next);
   return next();
 });
 
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+}
+
+
+const onboardingWalletsByIpDay = new Map();
+
+function isLocalhostIp(ip) {
+  return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip || '');
+}
+
+function assertOnboardingIpAllowance(req, publicKey) {
+  const ip = req.ip || 'unknown';
+  if (isLocalhostIp(ip)) return;
+  const day = new Date().toISOString().slice(0, 10);
+  const key = `${day}:${ip}`;
+  if (!onboardingWalletsByIpDay.has(key)) onboardingWalletsByIpDay.set(key, new Set());
+  const wallets = onboardingWalletsByIpDay.get(key);
+  if (!wallets.has(publicKey) && wallets.size >= config.maxNewWalletsPerIpPerDay) {
+    throw new AppError('RATE_LIMITED', 'Se alcanzó el límite de cuentas nuevas por hoy. Probá mañana.', 429);
+  }
+  wallets.add(publicKey);
+  if (onboardingWalletsByIpDay.size > 500) {
+    for (const oldKey of onboardingWalletsByIpDay.keys()) {
+      if (!oldKey.startsWith(`${day}:`)) onboardingWalletsByIpDay.delete(oldKey);
+    }
+  }
 }
 
 function requirePublicKey(value) {
@@ -65,6 +93,9 @@ app.get('/api/config', (req, res) => {
     costoCanje: config.costoCanje,
     descuentoPct: config.descuentoPct,
     descuentoMaxUsdc: config.descuentoMaxUsdc,
+    arsPerUsdc: config.arsPerUsdc,
+    aportePct: config.aportePct,
+    descuentoMaxArs: config.descuentoMaxArs,
     explorerTxUrl: 'https://stellar.expert/explorer/testnet/tx/',
     explorerAccountUrl: 'https://stellar.expert/explorer/testnet/account/',
     centroLabel: 'Centro de Veteranos (cuenta de demostración)',
@@ -88,6 +119,7 @@ app.get('/api/stops/:id', (req, res) => {
 app.post('/api/onboard/build', asyncRoute(async (req, res) => {
   const { publicKey } = req.body || {};
   requirePublicKey(publicKey);
+  assertOnboardingIpAllowance(req, publicKey);
   const result = await buildOnboarding(publicKey);
   res.json(result);
 }));
@@ -145,6 +177,40 @@ app.post('/api/pay/submit', asyncRoute(async (req, res) => {
   res.json(result);
 }));
 
+app.post('/api/redeem/build', asyncRoute(async (req, res) => {
+  const result = await buildMerchantRedemption(req.body);
+  res.json(result);
+}));
+
+app.post('/api/redeem/submit', asyncRoute(async (req, res) => {
+  const { signedXdr } = req.body || {};
+  const result = await submitMerchantRedemption(signedXdr);
+  res.json(result);
+}));
+
+app.post('/api/pollar/huella-access/build', asyncRoute(async (req, res) => {
+  const { publicKey } = req.body || {};
+  requirePublicKey(publicKey);
+  res.json(await buildPollarHuellaAccess(publicKey));
+}));
+
+app.post('/api/pollar/huella-access/submit', asyncRoute(async (req, res) => {
+  const { signedXdr } = req.body || {};
+  res.json(await submitPollarHuellaAccess(signedXdr));
+}));
+
+app.post('/api/pollar/huella-transfer/build', asyncRoute(async (req, res) => {
+  const { publicKey, destination, amount } = req.body || {};
+  requirePublicKey(publicKey);
+  requirePublicKey(destination);
+  res.json(await buildHuellaTransfer({ publicKey, destination, amount }));
+}));
+
+app.post('/api/pollar/huella-transfer/submit', asyncRoute(async (req, res) => {
+  const { signedXdr } = req.body || {};
+  res.json(await submitHuellaTransfer(signedXdr));
+}));
+
 app.get('/api/merchants', (req, res) => {
   res.json(merchants.map(merchantListItem));
 });
@@ -158,8 +224,33 @@ app.get('/api/merchants/:id/payments', (req, res) => {
   res.json(listMerchantPayments(req.params.id, req.query.since));
 });
 
+app.get('/api/merchants/:id/redemptions', (req, res) => {
+  const merchant = getMerchant(req.params.id);
+  if (!merchant) {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'El comercio no existe' } });
+    return;
+  }
+  res.json(listMerchantRedemptions(req.params.id, req.query.since));
+});
+
 app.get('/api/transparencia', asyncRoute(async (req, res) => {
-  const rows = listPayments();
+  const paymentRows = listPayments().map((row) => ({
+    ...row,
+    tipo: 'pago',
+    concepto: 'Aporte por pago en USDC'
+  }));
+  const redemptionRows = listRedemptions().map((row) => ({
+    txHash: row.txHash,
+    ref: row.ref,
+    pubkey: row.pubkey,
+    merchantId: row.merchantId,
+    toCentro: row.aporteUsdc,
+    huellasBurned: row.huellasBurned,
+    createdAt: row.createdAt,
+    tipo: 'canje',
+    concepto: 'Aporte del comercio por canje'
+  }));
+  const rows = [...paymentRows, ...redemptionRows].sort((a, b) => b.createdAt - a.createdAt);
   const byMerchant = new Map();
   let total = 0n;
   for (const row of rows) {
@@ -168,11 +259,12 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
     const merchant = getMerchant(row.merchantId);
     const nombre = merchant?.nombre || row.merchantId;
     if (!byMerchant.has(row.merchantId)) {
-      byMerchant.set(row.merchantId, { merchantId: row.merchantId, nombre, total: 0n, pagos: 0 });
+      byMerchant.set(row.merchantId, { merchantId: row.merchantId, nombre, total: 0n, pagos: 0, canjes: 0 });
     }
     const group = byMerchant.get(row.merchantId);
     group.total += centroStroops;
     group.pagos += 1;
+    if (row.tipo === 'canje') group.canjes += 1;
   }
   const [onChain, revocaciones] = await Promise.all([getCentroOnChain(), getHuellaRevocations()]);
   res.json({
@@ -182,14 +274,17 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
       merchantId: group.merchantId,
       nombre: group.nombre,
       totalCentro: fmtStroops(group.total),
-      pagos: group.pagos
+      pagos: group.pagos,
+      canjes: group.canjes
     })),
     lista: rows.map((row) => ({
       txHash: row.txHash,
       merchantId: row.merchantId,
       nombre: getMerchant(row.merchantId)?.nombre || row.merchantId,
       toCentro: row.toCentro,
-      createdAt: row.createdAt
+      createdAt: row.createdAt,
+      tipo: row.tipo,
+      concepto: row.concepto
     })),
     centroPub: config.centroPub,
     onChain,

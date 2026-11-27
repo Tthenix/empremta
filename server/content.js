@@ -8,7 +8,8 @@ function readJson(relativePath) {
 export const stops = readJson('../content/stops.json');
 export const merchants = readJson('../content/merchants.json').map((merchant) => ({
   ...merchant,
-  pub: process.env[merchant.pubkeyEnv] || ''
+  pub: process.env[merchant.pubkeyEnv] || '',
+  secretEnv: merchant.secretEnv || merchant.pubkeyEnv.replace(/_PUB$/, '_SECRET')
 }));
 
 export function getStop(id) {

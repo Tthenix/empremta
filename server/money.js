@@ -35,3 +35,21 @@ export function minBigInt(a, b) {
 export function isAmountString(amount) {
   return typeof amount === 'string' && AMOUNT_RE.test(amount);
 }
+
+export function decimalToScaled(value, scaleDigits, label = 'monto') {
+  if (typeof value !== 'string' || !new RegExp(`^\\d+(\\.\\d{1,${scaleDigits}})?$`).test(value)) {
+    throw new Error(`${label} inválido`);
+  }
+  const scale = 10n ** BigInt(scaleDigits);
+  const [whole, fraction = ''] = value.split('.');
+  return BigInt(whole) * scale + BigInt((fraction + '0'.repeat(scaleDigits)).slice(0, scaleDigits));
+}
+
+export function fmtScaled(value, scaleDigits) {
+  const scale = 10n ** BigInt(scaleDigits);
+  const negative = value < 0n;
+  const abs = negative ? -value : value;
+  const whole = abs / scale;
+  const fraction = String(abs % scale).padStart(scaleDigits, '0');
+  return `${negative ? '-' : ''}${whole}.${fraction}`;
+}

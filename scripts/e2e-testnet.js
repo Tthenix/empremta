@@ -1,16 +1,18 @@
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { Keypair, Networks, TransactionBuilder } from '@stellar/stellar-sdk';
+import { Keypair, Networks, Operation, TransactionBuilder } from '@stellar/stellar-sdk';
 import { config } from '../server/config.js';
 import { getMerchant, stops } from '../server/content.js';
 import { recordVisitor } from '../server/db.js';
 import { decimalToStroopsUnchecked } from '../server/money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from '../server/payments.js';
+import { buildMerchantRedemption, submitMerchantRedemption } from '../server/redemptions.js';
 import {
   assetBalance,
   buildOnboarding,
   getAccountBalances,
   HUELLA,
+  server,
   submitOnboarding,
   USDC
 } from '../server/stellar.js';
@@ -157,6 +159,16 @@ async function apiPaySubmit(signedXdr) {
   return submitMerchantPayment(signedXdr);
 }
 
+async function apiRedeemBuild(payload) {
+  if (useHttp) return postJson('/api/redeem/build', payload);
+  return buildMerchantRedemption(payload);
+}
+
+async function apiRedeemSubmit(signedXdr) {
+  if (useHttp) return postJson('/api/redeem/submit', { signedXdr });
+  return submitMerchantRedemption(signedXdr);
+}
+
 async function onboardVisitor(visitor) {
   const built = await apiOnboardBuild(visitor.publicKey());
   assert(!built.alreadyOnboarded, 'una cuenta nueva no debería venir onboarded');
@@ -271,7 +283,130 @@ async function verifyDemoFundAndPayment(visitor) {
   return { payment, ref };
 }
 
-async function verifyHttpContract(visitor, paymentInfo) {
+async function verifyCanjeFlow() {
+  const visitor = Keypair.random();
+  console.log(`Visitante para canje: ${visitor.publicKey()}`);
+  console.log(`Cuenta: ${EXPLORER_ACCOUNT}${visitor.publicKey()}`);
+  await onboardVisitor(visitor);
+  for (const stop of stops) {
+    await apiVisit(visitPayload(visitor, stop));
+  }
+  const before = await getAccountBalances(visitor.publicKey());
+  assert(stroopsOf(before.huella) === stroopsOf('30'), `canje: HUELLA inicial esperado 30, recibido ${before.huella}`);
+  assert(stroopsOf(before.usdc) === 0n, `canje: el visitante no debería necesitar USDC, tiene ${before.usdc}`);
+
+  const merchant = getMerchant('m1');
+  const beforeMerchant = await getAccountBalances(merchant.pub);
+  const beforeCentro = await getAccountBalances(config.centroPub);
+  const ref = crypto.randomBytes(4).toString('hex').toUpperCase();
+  const built = await apiRedeemBuild({
+    publicKey: visitor.publicKey(),
+    merchantId: 'm1',
+    amountArs: '10000',
+    ref
+  });
+  assert(built.desglose.amountArs === '10000.00', `amountArs inesperado ${built.desglose.amountArs}`);
+  assert(built.desglose.discountArs === '1000.00', `discountArs inesperado ${built.desglose.discountArs}`);
+  assert(built.desglose.totalArs === '9000.00', `totalArs inesperado ${built.desglose.totalArs}`);
+  assert(built.desglose.aporteUsdc === '0.3214285', `aporteUsdc inesperado ${built.desglose.aporteUsdc}`);
+  assert(built.desglose.huellasBurned === 30, `huellasBurned canje inesperado ${built.desglose.huellasBurned}`);
+
+  const signed = signXdr(built.xdr, visitor);
+  const redemption = await apiRedeemSubmit(signed);
+  printTx('Canje fee-bump tx', redemption.txHash);
+
+  const afterVisitor = await getAccountBalances(visitor.publicKey());
+  const afterMerchant = await getAccountBalances(merchant.pub);
+  const afterCentro = await getAccountBalances(config.centroPub);
+  const aporte = stroopsOf(built.desglose.aporteUsdc);
+  assert(stroopsOf(afterCentro.usdc) - stroopsOf(beforeCentro.usdc) === aporte, 'el centro no recibió exactamente el aporte calculado');
+  assert(stroopsOf(beforeMerchant.usdc) - stroopsOf(afterMerchant.usdc) === aporte, 'el comercio no pagó exactamente el aporte calculado');
+  assert(stroopsOf(afterVisitor.huella) === 0n, `HUELLA esperado 0 tras canje, recibido ${afterVisitor.huella}`);
+  assert(afterVisitor.xlm === '0.0000000', `XLM esperado 0 tras canje, recibido ${afterVisitor.xlm}`);
+  assert(stroopsOf(afterVisitor.usdc) === 0n, `el visitante no debería necesitar USDC tras el canje, tiene ${afterVisitor.usdc}`);
+
+  let duplicateError = null;
+  try {
+    await apiRedeemBuild({ publicKey: visitor.publicKey(), merchantId: 'm1', amountArs: '10000', ref });
+  } catch (err) {
+    duplicateError = err;
+  }
+  assert(duplicateError?.code === 'ALREADY_PAID', `ref duplicada de canje rechazada con código inesperado: ${duplicateError?.code || 'sin error'}`);
+
+  let insufficientError = null;
+  try {
+    await apiRedeemBuild({
+      publicKey: visitor.publicKey(),
+      merchantId: 'm1',
+      amountArs: '10000',
+      ref: crypto.randomBytes(4).toString('hex').toUpperCase()
+    });
+  } catch (err) {
+    insufficientError = err;
+  }
+  assert(insufficientError?.code === 'INSUFFICIENT_BALANCE', `canje sin 30 Huellas rechazado con código inesperado: ${insufficientError?.code || 'sin error'}`);
+  console.log(`Canje verificado: centro +${built.desglose.aporteUsdc}, comercio -${built.desglose.aporteUsdc}, visitante sin USDC ni XLM`);
+  return { redemption, ref, desglose: built.desglose };
+}
+
+async function verifyTransferredHuellasWithoutVisits() {
+  const donor = Keypair.random();
+  const recipient = Keypair.random();
+  await onboardVisitor(donor);
+  for (const stop of stops) {
+    await apiVisit(visitPayload(donor, stop));
+  }
+  await onboardVisitor(recipient);
+
+  const donorAccount = await server.loadAccount(donor.publicKey());
+  const inner = new TransactionBuilder(donorAccount, {
+    fee: '100',
+    networkPassphrase: Networks.TESTNET
+  })
+    .addOperation(Operation.payment({
+      destination: recipient.publicKey(),
+      asset: HUELLA,
+      amount: '30'
+    }))
+    .setTimeout(180)
+    .build();
+  inner.sign(donor);
+  const issuer = Keypair.fromSecret(config.issuerSecret);
+  const feeBump = TransactionBuilder.buildFeeBumpTransaction(issuer, '1000', inner, Networks.TESTNET);
+  feeBump.sign(issuer);
+  const transfer = await server.submitTransaction(feeBump);
+  printTx('Transferencia HUELLA sin visitas del receptor', transfer.hash);
+
+  const recipientBalances = await getAccountBalances(recipient.publicKey());
+  assert(stroopsOf(recipientBalances.huella) === stroopsOf('30'), 'el receptor no recibió 30 HUELLA transferidas');
+
+  for (const attempt of [
+    () => apiRedeemBuild({
+      publicKey: recipient.publicKey(),
+      merchantId: 'm1',
+      amountArs: '10000',
+      ref: crypto.randomBytes(4).toString('hex').toUpperCase()
+    }),
+    () => apiPayBuild({
+      publicKey: recipient.publicKey(),
+      merchantId: 'm1',
+      amount: '2.5',
+      ref: crypto.randomBytes(4).toString('hex').toUpperCase(),
+      useHuellas: true
+    })
+  ]) {
+    let transferError = null;
+    try {
+      await attempt();
+    } catch (err) {
+      transferError = err;
+    }
+    assert(transferError?.code === 'NOT_ENOUGH_VISITS', `HUELLA transferida sin visitas rechazada con código inesperado: ${transferError?.code || 'sin error'}`);
+  }
+  console.log('Huerfanas transferidas sin visitas rechazadas en canje y pago (NOT_ENOUGH_VISITS)');
+}
+
+async function verifyHttpContract(visitor, paymentInfo, canjeInfo) {
   if (!useHttp) return;
   const cfg = await getJson('/api/config');
   assert(cfg.network === 'testnet' && cfg.demoMode === true, 'config HTTP inesperada');
@@ -296,8 +431,11 @@ async function verifyHttpContract(visitor, paymentInfo) {
   assert(account.demoFunded === true, 'account no marca demoFunded');
   const merchantPayments = await getJson('/api/merchants/m1/payments');
   assert(merchantPayments.some((payment) => payment.txHash === paymentInfo.payment.txHash && payment.ref === paymentInfo.ref), 'el pago no aparece en la caja del comercio');
+  const merchantRedemptions = await getJson('/api/merchants/m1/redemptions');
+  assert(merchantRedemptions.some((redemption) => redemption.txHash === canjeInfo.redemption.txHash && redemption.ref === canjeInfo.ref), 'el canje no aparece en la caja del comercio');
   const transparency = await getJson('/api/transparencia');
   assert(transparency.lista.some((payment) => payment.txHash === paymentInfo.payment.txHash), 'el pago no aparece en transparencia');
+  assert(transparency.lista.some((redemption) => redemption.txHash === canjeInfo.redemption.txHash && redemption.tipo === 'canje'), 'el canje no aparece en transparencia');
   assert(stroopsOf(transparency.totalCentro) >= stroopsOf('0.1125'), 'totalCentro de transparencia demasiado bajo');
   assert(transparency.onChain?.source === 'horizon', `transparencia on-chain no vino de Horizon: ${transparency.onChain?.source}`);
   assert(
@@ -375,8 +513,10 @@ async function main() {
   await verifyOnboarding(visitor);
   await registerThreeVisits(visitor);
   const paymentInfo = await verifyDemoFundAndPayment(visitor);
+  const canjeInfo = await verifyCanjeFlow();
+  await verifyTransferredHuellasWithoutVisits();
   await verifyRevocationFlow();
-  await verifyHttpContract(visitor, paymentInfo);
+  await verifyHttpContract(visitor, paymentInfo, canjeInfo);
   console.log(useHttp ? 'M1+M2+M3+M4+F1+F2 HTTP OK' : 'M1+M2+M3+F2 OK');
 }
 

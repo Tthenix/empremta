@@ -23,6 +23,9 @@ const DEFAULTS = {
   COSTO_CANJE: '30',
   DESCUENTO_PCT: '10',
   DESCUENTO_MAX_USDC: '1',
+  ARS_PER_USDC: '1400',
+  APORTE_PCT: '',
+  DESCUENTO_MAX_ARS: '2000',
   GEO_RADIUS_M: '200',
   DEMO_MODE: 'true',
   DEMO_FUND_USDC: '5',
@@ -37,7 +40,7 @@ const ORDER = [
   'TREASURY_SECRET', 'TREASURY_PUB', 'MERCHANT_1_SECRET', 'MERCHANT_1_PUB',
   'MERCHANT_2_SECRET', 'MERCHANT_2_PUB', 'USDC_ISSUER_MOCK_SECRET', 'USDC_ISSUER_MOCK_PUB',
   'QR_SECRET', 'HUELLAS_POR_VISITA', 'COSTO_CANJE', 'DESCUENTO_PCT', 'DESCUENTO_MAX_USDC',
-  'GEO_RADIUS_M', 'DEMO_MODE', 'DEMO_FUND_USDC', 'PUBLIC_BASE_URL', 'HOME_DOMAIN', 'PORT', 'DB_PATH'
+  'ARS_PER_USDC', 'APORTE_PCT', 'DESCUENTO_MAX_ARS', 'GEO_RADIUS_M', 'DEMO_MODE', 'DEMO_FUND_USDC', 'PUBLIC_BASE_URL', 'HOME_DOMAIN', 'PORT', 'DB_PATH'
 ];
 const KEY_NAMES = ['ISSUER', 'CENTRO', 'TREASURY', 'MERCHANT_1', 'MERCHANT_2', 'USDC_ISSUER_MOCK'];
 const EXPLORER_ACCOUNT = 'https://stellar.expert/explorer/testnet/account/';
@@ -208,9 +211,26 @@ async function main() {
     } else {
       console.log('TREASURY ya tiene al menos 10.000 USDC mock.');
     }
+
+    const merchantTarget = decimalToStroops('100');
+    for (const name of ['MERCHANT_1', 'MERCHANT_2']) {
+      const pub = env[`${name}_PUB`];
+      const account = await horizonReadWithRetry(() => server.loadAccount(pub));
+      const current = decimalToStroops(assetBalance(account, usdc)?.balance || '0');
+      if (current < merchantTarget) {
+        const amount = stroopsToDecimal(merchantTarget - current);
+        const result = await submitTx(server, env.TREASURY_SECRET, [
+          Operation.payment({ destination: pub, asset: usdc, amount })
+        ]);
+        console.log(`USDC mock transferido a ${name} para aportes de canje (${amount}). tx=${result.hash}`);
+      } else {
+        console.log(`${name} ya tiene al menos 100 USDC mock para aportes de canje.`);
+      }
+    }
   } else {
     console.log('USDC_MODE=circle. Un humano tiene que fondear TREASURY en https://faucet.circle.com');
     console.log(`TREASURY: ${env.TREASURY_PUB}`);
+    console.log('También hay que fondear MERCHANT_1 y MERCHANT_2 con USDC para los aportes de canje.');
   }
 
   const issuerAfter = await horizonReadWithRetry(() => server.loadAccount(env.ISSUER_PUB));
