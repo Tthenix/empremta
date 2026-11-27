@@ -182,3 +182,12 @@ https://stellar.expert/explorer/testnet/tx/d2c5b5f8ab4fff642c707d4f9c1775063b0f2
   - IV Brigada Aérea, El Plumerillo (`plu`): Fernando Klix Berrotaran (6/10/2020), pp. 157–158.
   - Coquimbito, Maipú (`coq`): Ramón Andrés Suárez (31/1/2023), pp. 150–151.
 - No se inventaron testimonios, citas, biografías ni anécdotas. La confirmación de derechos con EdiUC y la validación con veteranos y comerciantes quedan documentadas en `VALIDACION.md` y SPEC §17.
+
+
+## Canje con aporte del comercio
+
+El flujo principal no pide saldo al visitante. El comercio ingresa el ticket en pesos en `/comercio/:id`, genera un QR de `/canjear` y el visitante canjea 30 Huellas. La transacción Stellar tiene dos operaciones clásicas: quema las Huellas y transfiere el aporte USDC desde la cuenta custodial del comercio al Centro. La conversión usa `ARS_PER_USDC` como tipo de cambio de referencia y se redondea hacia abajo a 7 decimales.
+
+Variables aditivas: `ARS_PER_USDC=1400`, `APORTE_PCT` (vacío usa el porcentaje del comercio), `DESCUENTO_MAX_ARS=2000` y `MAX_NEW_WALLETS_PER_IP_PER_DAY=5`. El límite de cuentas nuevas se aplica por IP y día UTC; localhost queda exento para poder correr el e2e local.
+
+El flujo técnico anterior `/pagar` y “Cargar saldo de prueba” sigue disponible solo como opción avanzada/demo.

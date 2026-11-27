@@ -1,3 +1,16 @@
+## Guión de 3 minutos: canje
+
+1. Mostrar la ruta y registrar una visita: la Huella queda en Stellar sin instalar nada.
+2. En “Mis huellas”, explicar que al completar las tres paradas se habilita el descuento. La clave local sigue disponible como respaldo manual.
+3. Abrir `/comercio/m1`, ingresar un ticket de $10.000 y generar el canje. La caja queda “Esperando canje…”.
+4. Escanear el QR con el celular o abrir `/canjear?...`: mostrar ticket, descuento de $1.000, total a pagar en el comercio de $9.000 y aporte del comercio de 0.3214285 USDC al Centro (tipo de referencia $1.400).
+5. Tocar “Canjear mis Huellas”. En la misma transacción se queman 30 Huellas y el comercio aporta USDC. La caja cambia a “Huellas canjeadas” y muestra el enlace de Stellar.
+6. Cerrar en Transparencia: el aporte aparece como “Aporte del comercio por canje”. El visitante nunca necesitó XLM ni USDC.
+
+### Respaldo técnico (solo si preguntan)
+
+`/pagar` y “Cargar saldo de prueba” siguen funcionando como demo avanzada del flujo USDC original.
+
 # DEMO — guion de 3 minutos
 
 Objetivo: mostrar que una visita a lugares de memoria se convierte en apoyo económico verificable para veteranos, sin que la persona visitante tenga que entender cripto.
