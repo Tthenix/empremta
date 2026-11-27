@@ -59,3 +59,13 @@
 - [ ] Probar con una persona externa en el lugar y filmarla con permiso.
 - [ ] Probar cobro con el comercio.
 - [ ] Completar `VALIDACION.md`, grabar el video y entregar en Apex antes de las 22:00.
+
+## Verificación noche 2 — UX polish + investigación (2026-11-27)
+- `npm --prefix web run build`: OK. Bundle inicial `index` 296.97 kB minificado / 94.31 kB gzip; `wallet` diferido 292.92 kB / 71.26 kB gzip; `StopMap` diferido 153.77 kB / 45.16 kB gzip.
+- `npm run e2e -- --http`: OK contra testnet real. Resultado final del script: `M1+M2+M3+M4 HTTP OK`.
+- Flujo e2e: onboarding, 3 visitas, rechazo de visita repetida, fondeo demo, desglose previo, pago fee-bump, verificación de contratos HTTP.
+- Desglose e2e verificado antes de firmar: total cobro `2.5000000`; descuento `0.2500000`; total pagado `2.2500000`; comercio `+2.1375000`; centro `+0.1125000`; HUELLA final `0.0000000`; XLM visitante `0.0000000`.
+- Pago e2e noche 2: https://stellar.expert/explorer/testnet/tx/598c415c11975970ce1fbf27ff1293dfaaf5bac11f6e528da95e23e0ec861cd0
+- Cuenta visitante e2e noche 2: https://stellar.expert/explorer/testnet/account/GBIHW4P4X2QAJ5JESVSE4KKEQ3S2H2WH7HXWRVPDQBQMRHWX4L7PUUZ5
+- Repaso manual posterior a cambios a 375 px (`/`, `/v/pc`, `/recorrido`, `/pagar`, `/comercio/m1`, `/transparencia`, `/acerca`): sin overflow horizontal; acciones principales miden 55 px de alto.
+- Detector manual Impeccable sobre archivos web modificados: `[]` (sin hallazgos mecánicos).
