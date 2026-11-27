@@ -58,7 +58,18 @@ npm run e2e          # flujo directo CLI
 npm run e2e -- --http  # mismo flujo completo a través de la API HTTP
 ```
 
-El e2e imprime hashes reales de: onboarding patrocinado, 3 visitas, fondeo demo y pago atómico con fee-bump. Mira `PROGRESS.md` para links ya ejecutados.
+El e2e imprime hashes reales de: onboarding patrocinado, 3 visitas, fondeo demo, pago atómico con fee-bump y revocación/restauración de HUELLA. Mira `PROGRESS.md` para links ya ejecutados.
+
+## Control del asset HUELLA
+
+El centro puede suspender una cuenta ante fraude sin exponer un panel web administrativo:
+
+```bash
+npm run revocar -- <G...pubkey>            # suspende la trustline HUELLA
+npm run revocar -- <G...pubkey> --restore  # la restaura
+```
+
+El script firma una operación clásica `setTrustLineFlags` con `ISSUER`, valida que sea testnet e imprime el link público de la transacción. Una cuenta suspendida no puede recibir ni usar Huellas; la API devuelve `ACCOUNT_REVOKED` con un mensaje humano en español y `/transparencia` muestra la traza pública de suspensiones vigentes.
 
 ## Frontend integrado
 

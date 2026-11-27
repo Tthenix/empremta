@@ -12,7 +12,8 @@
     "dev:server": "node --watch server/index.js",
     "build": "npm --prefix web ci && npm --prefix web run build",
     "start": "node server/index.js",
-    "qr": "node scripts/generate-qr.js"
+    "qr": "node scripts/generate-qr.js",
+    "revocar": "node scripts/revocar-huellas.js"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "17.4.0",

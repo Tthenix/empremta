@@ -5,6 +5,11 @@ import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
 
+function shortPubkey(pubkey) {
+  if (!pubkey || pubkey.length < 18) return pubkey || '—'
+  return `${pubkey.slice(0, 10)}…${pubkey.slice(-8)}`
+}
+
 function paymentsForDisplay(data) {
   const dbPayments = data.lista || []
   if (data.onChain?.source !== 'horizon') return dbPayments
@@ -176,6 +181,29 @@ export default function Transparency() {
           </ul>
         )}
       </section>
+
+      {data.revocaciones?.length > 0 && (
+        <section className="transparency-section revocation-section" aria-labelledby="revocaciones-title">
+          <h2 id="revocaciones-title">Cuentas suspendidas por el centro</h2>
+          <p className="muted">
+            Si el centro detecta fraude puede suspender el uso de Huellas. La suspensión también
+            queda registrada públicamente en Stellar.
+          </p>
+          <ul className="revocation-list">
+            {data.revocaciones.map((revocation) => (
+              <li key={`${revocation.pubkey}-${revocation.txHash}`}>
+                <div className="revocation-main">
+                  <p className="revocation-key" title={revocation.pubkey}>
+                    {shortPubkey(revocation.pubkey)}
+                  </p>
+                  <p className="payment-date">{formatDate(revocation.createdAt)}</p>
+                </div>
+                <TxLink hash={revocation.txHash} explorerTxUrl={config?.explorerTxUrl} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

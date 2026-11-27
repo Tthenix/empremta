@@ -87,6 +87,15 @@ export function assetBalance(account, asset) {
   )) || null;
 }
 
+export function assertHuellaAccess(account) {
+  const trustline = assetBalance(account, HUELLA);
+  if (!trustline) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
+  if (trustline.is_authorized === false) {
+    throw new AppError('ACCOUNT_REVOKED', 'Esta cuenta fue suspendida por el Centro de Veteranos', 403);
+  }
+  return trustline;
+}
+
 function nativeBalance(account) {
   return account?.balances.find((balance) => balance.asset_type === 'native')?.balance || '0.0000000';
 }
@@ -163,6 +172,7 @@ export async function mintVisit(publicKey, stopId) {
   if (!/^[a-z0-9-]{1,16}$/.test(stopId)) throw invalidInput('La parada no es válida');
   const account = await loadAccountOrNull(publicKey);
   if (!account) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
+  assertHuellaAccess(account);
   const issuerAccount = await server.loadAccount(config.issuerPub);
   const tx = new TransactionBuilder(issuerAccount, {
     fee: '1000',
@@ -255,6 +265,7 @@ export async function buildPayment({ publicKey, merchant, amount, ref, useHuella
   if (!/^[A-Za-z0-9]{8}$/.test(ref || '')) throw invalidInput('La referencia tiene que tener 8 caracteres alfanuméricos');
   const balances = await getAccountBalances(publicKey);
   if (!balances.exists) throw new AppError('NOT_ONBOARDED', 'Primero tenés que crear tu cuenta de la ruta', 400);
+  if (useHuellas) assertHuellaAccess(balances.account);
 
   const split = splitPayment({
     amount,

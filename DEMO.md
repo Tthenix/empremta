@@ -99,6 +99,25 @@ Decir:
 
 > “Los contenidos históricos todavía son placeholders porque no vamos a inventar testimonios. El próximo paso humano es validar el tono con veteranos, reemplazar los textos por historias cedidas con permiso y probar con un comercio real. La infraestructura ya funciona de punta a punta en Stellar testnet.”
 
+## Paso opcional de 30 segundos — control del centro sobre HUELLA
+
+Preparación: tener a mano la clave pública de una cuenta visitante descartable (el e2e imprime una en cada corrida) y una URL de parada válida.
+
+1. **0–10 s:** en una terminal, suspenderla:
+   ```bash
+   npm run revocar -- <G...pubkey>
+   ```
+   Mostrar el link de Stellar que imprime y, en `/transparencia`, la sección discreta “Cuentas suspendidas por el centro”.
+2. **10–20 s:** intentar registrar la visita con esa cuenta. La app muestra: “Esta cuenta fue suspendida por el Centro de Veteranos”.
+3. **20–30 s:** restaurarla y repetir la visita:
+   ```bash
+   npm run revocar -- <G...pubkey> --restore
+   ```
+
+Decir:
+
+> “HUELLA no es un punto editable en una base: el emisor puede autorizar o suspender cuentas con una operación pública de Stellar. No hicimos un panel administrativo web porque sería una superficie de ataque innecesaria para esta demo.”
+
 ## Links de evidencia técnica
 
 Si falla la red durante la filmación, usar los hashes reales ya verificados en `PROGRESS.md`, especialmente el pago atómico:

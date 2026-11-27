@@ -10,7 +10,7 @@ All amounts are **strings** with up to 7 decimals (e.g. `"2.5000000"` or `"2.50"
 ```
 
 with HTTP 4xx/5xx. `message` is already human-readable Rioplatense Spanish; the UI shows it as-is.
-Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `HORIZON_ERROR`, `RATE_LIMITED`, `NOT_FOUND`.
+Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `TOO_FAR`, `ALREADY_VISITED`, `HASH_MISMATCH`, `INSUFFICIENT_BALANCE`, `NOT_ONBOARDED`, `ALREADY_FUNDED`, `ALREADY_PAID`, `DEMO_DISABLED`, `ACCOUNT_REVOKED`, `HORIZON_ERROR`, `RATE_LIMITED`, `NOT_FOUND`.
 
 ## GET /api/config
 ```json
@@ -46,6 +46,7 @@ Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "abc..." }`
 Req `{ "publicKey", "stopId", "code", "lat": number|null, "lng": number|null, "ts": number (ms epoch), "signature": "base64" }`
 Signed message: `visita:${stopId}:${ts}` (UTF-8). Implementation note: stellar-sdk v17 returns `Uint8Array` from `keypair.sign`; encode with `Buffer.from(signatureBytes).toString("base64")` before sending.
 → `{ "txHash": "...", "huellas": "30.0000000" }` (`huellas` = new balance)
+A suspended HUELLA trustline → 403 `ACCOUNT_REVOKED` with message `Esta cuenta fue suspendida por el Centro de Veteranos`.
 
 ## GET /api/account/:pub
 ```json
@@ -65,6 +66,7 @@ Req `{ "publicKey", "merchantId": "m1", "amount": "2.50", "ref": "AB12CD34", "us
                 "merchant": { "id": "m1", "nombre": "..." } } }
 ```
 `useHuellas: true` with insufficient Huellas → discount `"0"`, `huellasBurned: 0` (not an error).
+`useHuellas: true` from a suspended HUELLA trustline → 403 `ACCOUNT_REVOKED` with the same human message as `/api/visit`.
 
 ## POST /api/pay/submit
 Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "...", "desglose": { ...same as build } }`
@@ -86,7 +88,8 @@ The cash register polls every 3 s and matches by `ref`.
   "onChain": { "source": "horizon", "balanceUsdc": "12.3400000", "totalRecibido": "12.3400000",
     "pagos": 7,
     "lista": [ { "txHash", "amount", "from", "createdAt" } ],
-    "fetchedAt": 1764200000000 } }
+    "fetchedAt": 1764200000000 },
+  "revocaciones": [ { "pubkey": "G...", "txHash": "...", "createdAt": 1764200000000 } ] }
 ```
 
 `onChain` is optional and additive. When Horizon cannot be read it is:
@@ -96,6 +99,8 @@ The cash register polls every 3 s and matches by `ref`.
 ```
 
 The existing top-level fields always come from the application database. `onChain` is read from the public ledger: incoming `payment` operations to `centroPub` in the configured USDC asset, summed with integer stroops server-side and cached briefly to respect Horizon rate limits.
+
+`revocaciones` is optional and additive. It contains currently suspended HUELLA trustlines whose latest issuer flag operation on Horizon clears `authorized`; restored accounts disappear after their restore operation becomes the latest one.
 
 ## POST /api/demo/fund
 Req `{ "publicKey" }` → `{ "txHash": "...", "amount": "5" }` (403 `DEMO_DISABLED`, 409 `ALREADY_FUNDED`)

@@ -11,7 +11,7 @@ import { AppError, invalidInput } from './errors.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from './payments.js';
 import { assetBalance, buildOnboarding, getAccountBalances, HUELLA, submitOnboarding, USDC } from './stellar.js';
-import { getCentroOnChain } from './transparency.js';
+import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
 export const app = express();
@@ -154,7 +154,7 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
     group.total += centroStroops;
     group.pagos += 1;
   }
-  const onChain = await getCentroOnChain();
+  const [onChain, revocaciones] = await Promise.all([getCentroOnChain(), getHuellaRevocations()]);
   res.json({
     totalCentro: fmtStroops(total),
     pagos: rows.length,
@@ -172,7 +172,8 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
       createdAt: row.createdAt
     })),
     centroPub: config.centroPub,
-    onChain
+    onChain,
+    revocaciones
   });
 }));
 

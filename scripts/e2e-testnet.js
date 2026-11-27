@@ -94,6 +94,37 @@ async function stopHttpServer() {
   serverProcess = null;
 }
 
+function runRevocar(publicKey, { restore = false } = {}) {
+  const args = ['run', 'revocar', '--', publicKey];
+  if (restore) args.push('--restore');
+  const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  return new Promise((resolve, reject) => {
+    const child = spawn(npmCmd, args, {
+      env: process.env,
+      shell: process.platform === 'win32',
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let output = '';
+    child.stdout.on('data', (chunk) => {
+      output += chunk;
+      process.stdout.write(chunk.toString().split('\n').map((line) => line ? `  [revocar] ${line}\n` : '').join(''));
+    });
+    child.stderr.on('data', (chunk) => {
+      output += chunk;
+      process.stderr.write(chunk.toString().split('\n').map((line) => line ? `  [revocar] ${line}\n` : '').join(''));
+    });
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`npm run revocar salió con código ${code}: ${output}`));
+        return;
+      }
+      const txHash = output.match(/(?:tx:\s*|\/tx\/)([a-f0-9]{64})/i)?.[1] || null;
+      resolve({ output, txHash });
+    });
+  });
+}
+
 async function apiOnboardBuild(publicKey) {
   if (useHttp) return postJson('/api/onboard/build', { publicKey });
   return buildOnboarding(publicKey);
@@ -270,6 +301,62 @@ async function verifyHttpContract(visitor, paymentInfo) {
   console.log('Contrato HTTP verificado en config, stops, account, merchants, payments y transparencia on-chain');
 }
 
+async function verifyRevocationFlow() {
+  const visitor = Keypair.random();
+  console.log(`Visitante para revocación: ${visitor.publicKey()}`);
+  console.log(`Cuenta: ${EXPLORER_ACCOUNT}${visitor.publicKey()}`);
+  await onboardVisitor(visitor);
+
+  const revoked = await runRevocar(visitor.publicKey());
+  assert(revoked.txHash, 'el script de revocación no imprimió hash de transacción');
+  printTx('Revocación HUELLA tx', revoked.txHash);
+
+  if (useHttp) {
+    const transparency = await getJson('/api/transparencia');
+    assert(
+      transparency.revocaciones?.some((item) => item.pubkey === visitor.publicKey() && item.txHash === revoked.txHash),
+      'la cuenta revocada no aparece en la traza pública de transparencia'
+    );
+    console.log('Traza pública de revocación verificada en /api/transparencia');
+  }
+
+  let visitError = null;
+  try {
+    await apiVisit(visitPayload(visitor, stops[0]));
+  } catch (err) {
+    visitError = err;
+  }
+  assert(visitError?.code === 'ACCOUNT_REVOKED', `visita revocada rechazada con código inesperado: ${visitError?.code || 'sin error'}`);
+  assert(
+    visitError?.message === 'Esta cuenta fue suspendida por el Centro de Veteranos',
+    'el error de cuenta suspendida no es el mensaje humano esperado'
+  );
+
+  let payError = null;
+  try {
+    await apiPayBuild({
+      publicKey: visitor.publicKey(),
+      merchantId: 'm1',
+      amount: '1.00',
+      ref: crypto.randomBytes(4).toString('hex').toUpperCase(),
+      useHuellas: true
+    });
+  } catch (err) {
+    payError = err;
+  }
+  assert(payError?.code === 'ACCOUNT_REVOKED', `pago con Huellas revocadas rechazado con código inesperado: ${payError?.code || 'sin error'}`);
+  console.log('Visita y pago con Huellas rechazados correctamente para cuenta suspendida');
+
+  const restored = await runRevocar(visitor.publicKey(), { restore: true });
+  assert(restored.txHash, 'el script de restauración no imprimió hash de transacción');
+  printTx('Restauración HUELLA tx', restored.txHash);
+
+  const visit = await apiVisit(visitPayload(visitor, stops[0]));
+  printTx('Visita tras restauración tx', visit.txHash);
+  assert(stroopsOf(visit.huellas) === stroopsOf('10'), `saldo HUELLA esperado 10 tras restaurar, recibido ${visit.huellas}`);
+  console.log('Cuenta restaurada y visita posterior verificada');
+}
+
 async function main() {
   await startHttpServerIfNeeded();
   const visitor = Keypair.random();
@@ -281,8 +368,9 @@ async function main() {
   await verifyOnboarding(visitor);
   await registerThreeVisits(visitor);
   const paymentInfo = await verifyDemoFundAndPayment(visitor);
+  await verifyRevocationFlow();
   await verifyHttpContract(visitor, paymentInfo);
-  console.log(useHttp ? 'M1+M2+M3+M4 HTTP OK' : 'M1+M2+M3 OK');
+  console.log(useHttp ? 'M1+M2+M3+M4+F1+F2 HTTP OK' : 'M1+M2+M3+F2 OK');
 }
 
 main()

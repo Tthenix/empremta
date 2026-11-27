@@ -398,6 +398,7 @@ export async function getTransparencia() {
       })),
       fetchedAt: Date.now(),
     },
+    revocaciones: [],
   }
 }
 

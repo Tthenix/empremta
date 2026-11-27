@@ -24,8 +24,11 @@ export function horizonToAppError(err) {
   if (all.some((code) => code === 'tx_timeout' || code === 'tx_too_late')) {
     return new AppError('HORIZON_ERROR', 'La transacción venció, probá de nuevo', 502, resultCodes);
   }
-  if (all.some((code) => code === 'op_not_authorized' || code === 'op_no_trust')) {
-    return new AppError('HORIZON_ERROR', 'La cuenta no está autorizada para usar este activo', 502, resultCodes);
+  if (all.some((code) => code === 'op_not_authorized')) {
+    return new AppError('ACCOUNT_REVOKED', 'Esta cuenta fue suspendida por el Centro de Veteranos', 403, resultCodes);
+  }
+  if (all.some((code) => code === 'op_no_trust')) {
+    return new AppError('HORIZON_ERROR', 'La cuenta no tiene la trustline necesaria para este activo', 502, resultCodes);
   }
   if (all.some((code) => code === 'op_no_destination')) {
     return new AppError('NOT_ONBOARDED', 'La cuenta de destino todavía no existe', 400, resultCodes);
