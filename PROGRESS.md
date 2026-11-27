@@ -4,6 +4,7 @@
 - M0 completo: scaffold ESM Node 20+, `.env.example`, contenido placeholder y setup idempotente de testnet.
 - `npm run setup` se ejecutó dos veces seguidas sin romper. La segunda corrida no re-fondeó ni duplicó trustlines.
 - `ISSUER` quedó con `auth_required: true` y `auth_revocable: true`.
+- M1 completo: onboarding patrocinado verificado contra testnet real. El visitante quedó con 0 XLM, trustlines HUELLA autorizada + USDC y sponsor `ISSUER`.
 
 ## Transacciones reales de testnet
 - Flags de ISSUER: https://stellar.expert/explorer/testnet/tx/32d3d8c8d88523712e16da7216b04f4967e1091f12b57659dd1f64d740c72216
@@ -12,6 +13,8 @@
 - Trustline USDC MERCHANT_1: https://stellar.expert/explorer/testnet/tx/52b820ccd40ac4c0325d4943b2649ec141e9b16bfc90f0377c8ebe8274b7b271
 - Trustline USDC MERCHANT_2: https://stellar.expert/explorer/testnet/tx/d09dd982a22156ba37aeeb293d1dc3e9271975c2c340b355b5357a6e8c2ba6b1
 - Emisión inicial USDC mock a TREASURY: https://stellar.expert/explorer/testnet/tx/6b9a07c28f93b3e4d2118f5ecaeac524cc20a7213870e0174d5fafd034fadaea
+- Onboarding patrocinado de visitante M1: https://stellar.expert/explorer/testnet/tx/4f2509426bc058cf0eb7df6e2f56b047f4fe2a6db93a95bf44cb0124801bd3cf
+- Cuenta visitante M1: https://stellar.expert/explorer/testnet/account/GB6WOWE57JQZBVTXRZMM3OYAYXNNHXWUZXVTOS2MFVDQVNLEY4Q7V5TO
 
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.
