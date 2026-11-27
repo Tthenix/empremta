@@ -7,6 +7,7 @@
 - M1 completo: onboarding patrocinado verificado contra testnet real. El visitante quedó con 0 XLM, trustlines HUELLA autorizada + USDC y sponsor `ISSUER`.
 - M2 completo: registro de visita con firma, código HMAC, anti-duplicado SQLite y mint de 10 HUELLA por parada. E2E llegó a 30 HUELLA y rechazó una repetida.
 - M3 completo: fondeo demo una sola vez, pago `2.50` con canje de 30 HUELLA, split atómico exacto, quema a 0 y fee-bump dejando al visitante con 0 XLM.
+- M4 completo: API Express + SQLite con las formas de `doc/API_CONTRACT.md`. `npm run e2e -- --http` pasó el flujo completo por HTTP y verificó config, stops, account, merchants, payments y transparencia.
 
 ## Transacciones reales de testnet
 - Flags de ISSUER: https://stellar.expert/explorer/testnet/tx/32d3d8c8d88523712e16da7216b04f4967e1091f12b57659dd1f64d740c72216
@@ -27,6 +28,11 @@
 - Demo fund M3: https://stellar.expert/explorer/testnet/tx/62b01b7dd90bc84dbd4c3757e8a7503d8ee34dfb160cf188957c1eabc00fdb18
 - Pago atómico con quema y fee-bump M3: https://stellar.expert/explorer/testnet/tx/714f2c45a76446b1a0076f2cc660723c6a11c28bbe907fd7ef2b56b95f52e362
 - Cuenta visitante M3: https://stellar.expert/explorer/testnet/account/GCJITEDA6KTQOWYCLFX4VYGSUHSPQZ7DUFT7V4XQ5PKBX54J7T3MACRK
+- Onboarding HTTP M4: https://stellar.expert/explorer/testnet/tx/2026a4b0ffee6a2548486597102d02f8f2389ac83a8fcaa0a368eb2c0f3f54d5
+- Visitas HTTP M4: https://stellar.expert/explorer/testnet/tx/5fb024041ea0819dd180a18a6c62e3c549536a26fbbe2f533f68351b744cfabd · https://stellar.expert/explorer/testnet/tx/0f9ddceedf2555a5f5f70cedc6f0344cdc7546819cc6b72b73cf1b5b4337df29 · https://stellar.expert/explorer/testnet/tx/9a0b9bc8e35a77b8b1d480c14aeafd88e59993a98b84b3edf87ddd941cf44bd9
+- Demo fund HTTP M4: https://stellar.expert/explorer/testnet/tx/70888427261858c949a987f15e2c13fc2ca49354cd6d72a520accfa65668ca4a
+- Pago HTTP M4 con fee-bump: https://stellar.expert/explorer/testnet/tx/21dc16c97e23d080948391ca0054afead053a13b034310bfbc09f3437bb5e122
+- Cuenta visitante M4: https://stellar.expert/explorer/testnet/account/GCGONNVGJOAQX7A5QJYQMVICYHERA5EQLH2EIUJJGY4ZU2H2LWCE3ZYF
 
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.

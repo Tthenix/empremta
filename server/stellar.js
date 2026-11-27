@@ -152,10 +152,10 @@ async function submitServerSigned(tx, hashToForget = null) {
 }
 
 export async function submitOnboarding(signedXdr) {
-  const { tx, hash } = verifyBuiltTx(signedXdr, 'onboard');
+  const { tx, hash, entry } = verifyBuiltTx(signedXdr, 'onboard');
   tx.sign(issuerKeypair());
   const result = await submitServerSigned(tx, hash);
-  return { txHash: result.hash };
+  return { txHash: result.hash, publicKey: entry.meta.publicKey };
 }
 
 export async function mintVisit(publicKey, stopId) {
