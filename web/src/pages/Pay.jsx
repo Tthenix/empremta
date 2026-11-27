@@ -8,7 +8,7 @@ import {
   humanError,
   payBuild,
 } from '../lib/api.js'
-import { formatAmount } from '../lib/format.js'
+import { formatUsdc, isPlaceholder } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
@@ -107,23 +107,34 @@ export default function Pay() {
     )
   }
 
+  const label = config?.usdcLabel || 'USDC'
+  const centroLabel = config?.centroLabel || 'Centro de Veteranos (cuenta de demostración)'
+
   if (done) {
     const d = done.desglose || built?.desglose
     return (
       <div className="page pay">
-        <h1>Pago hecho</h1>
-        <p>Gracias. El apoyo al centro ya quedó registrado en la red.</p>
-        {d && (
-          <ul className="breakdown done">
-            <li>
-              Al comercio: <strong>{formatAmount(d.toMerchant)} {config?.usdcLabel}</strong>
-            </li>
-            <li>
-              Al Centro de Veteranos: <strong>{formatAmount(d.toCentro)} {config?.usdcLabel}</strong>
-            </li>
-          </ul>
-        )}
-        <TxLink hash={done.txHash} explorerTxUrl={config?.explorerTxUrl} />
+        <section className="success-panel" role="status" aria-live="polite" aria-atomic="true">
+          <h1>Pago hecho</h1>
+          <p>Gracias. El apoyo al centro quedó registrado en la misma operación.</p>
+          {d && (
+            <ul className="breakdown done">
+              <li>
+                <span>Al comercio</span>
+                <strong>
+                  {formatUsdc(d.toMerchant)} {label}
+                </strong>
+              </li>
+              <li>
+                <span>Al centro</span>
+                <strong>
+                  {formatUsdc(d.toCentro)} {label}
+                </strong>
+              </li>
+            </ul>
+          )}
+          <TxLink hash={done.txHash} explorerTxUrl={config?.explorerTxUrl} />
+        </section>
         <div className="btn-row">
           <Link className="btn" to="/transparencia">
             Ver transparencia
@@ -137,69 +148,92 @@ export default function Pay() {
   }
 
   const d = built?.desglose
-  const canToggle =
-    Number(account?.huella || 0) >= (config?.costoCanje || 30)
+  const costo = config?.costoCanje || 30
+  const huellas = Number(account?.huella || 0)
+  const canToggle = huellas >= costo
+  const merchantName = d?.merchant?.nombre
 
   return (
     <div className="page pay">
       <h1>Confirmar pago</h1>
-      <p className="hint">Revisá el desglose antes de confirmar. Nada se firma solo.</p>
+      <p className="lede">Revisá el desglose antes de confirmar. Nada se firma solo.</p>
       <ErrorMsg>{error}</ErrorMsg>
 
       {!d ? (
         <Loading label="Calculando desglose…" />
       ) : (
         <>
+          <section className="payment-context" aria-label="Datos del cobro">
+            <p className="payment-context-label">Cobro de</p>
+            <p className={isPlaceholder(merchantName) ? 'placeholder-inline' : 'payment-merchant'}>
+              {merchantName}
+            </p>
+            <p className="muted">Ref. {ref}</p>
+          </section>
+
           <ul className="breakdown">
             <li>
-              <span>Total del comercio</span>
+              <span>Total del cobro</span>
               <strong>
-                {formatAmount(d.amount)} {config?.usdcLabel}
+                {formatUsdc(d.amount)} {label}
               </strong>
             </li>
             <li className="discount-row">
-              <label className="toggle-label">
-                <input
-                  type="checkbox"
-                  checked={useHuellas && canToggle}
-                  disabled={!canToggle}
-                  onChange={(e) => setUseHuellas(e.target.checked)}
-                />
-                Descuento por tu recorrido
-              </label>
+              <div>
+                <label className="toggle-label" htmlFor="use-huellas">
+                  <input
+                    id="use-huellas"
+                    type="checkbox"
+                    checked={useHuellas && canToggle}
+                    disabled={!canToggle || busy}
+                    aria-describedby="discount-help"
+                    onChange={(e) => setUseHuellas(e.target.checked)}
+                  />
+                  <span>Usar descuento por mi recorrido</span>
+                </label>
+                <p className="field-help" id="discount-help">
+                  {canToggle
+                    ? `Se usan ${costo} Huellas en este pago.`
+                    : `Necesitás ${costo} Huellas para usar este descuento.`}
+                </p>
+              </div>
               <strong>
-                −{formatAmount(d.discount)} {config?.usdcLabel}
+                −{formatUsdc(d.discount)} {label}
+              </strong>
+            </li>
+            <li className="total-row">
+              <span>Total que pagás</span>
+              <strong>
+                {formatUsdc(d.total)} {label}
               </strong>
             </li>
             <li className="emphasis">
               <span>Va al comercio</span>
               <strong>
-                {formatAmount(d.toMerchant)} {config?.usdcLabel}
+                {formatUsdc(d.toMerchant)} {label}
               </strong>
             </li>
             <li className="emphasis centro">
-              <span>Va al Centro de Veteranos de Malvinas</span>
+              <span>Va al {centroLabel}</span>
               <strong>
-                {formatAmount(d.toCentro)} {config?.usdcLabel}
+                {formatUsdc(d.toCentro)} {label}
               </strong>
             </li>
-            {d.huellasBurned > 0 && (
-              <li className="muted-row">
-                Se usan {d.huellasBurned} Huellas en este canje.
-              </li>
-            )}
           </ul>
 
-          <p className="merchant-name">{d.merchant?.nombre}</p>
-          <p className="fine-print">Ref. {ref}</p>
-
+          <p className="hint">
+            La operación es única: si una parte falla, no se confirma ningún pago.
+          </p>
+          <div className="sr-status" role="status" aria-live="polite" aria-atomic="true">
+            {busy ? 'Confirmando en la red. Puede tardar unos segundos.' : ''}
+          </div>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary btn-block"
             onClick={onConfirm}
             disabled={busy || !built}
           >
-            {busy ? 'Confirmando…' : 'Confirmar pago'}
+            {busy ? 'Confirmando en la red…' : 'Confirmar pago'}
           </button>
         </>
       )}
