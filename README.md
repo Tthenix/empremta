@@ -82,7 +82,7 @@ Genera en `dist/qr/`:
 - `parada-pc.png`, `parada-plu.png`, `parada-coq.png`
 - `qr-paradas-ruta-memoria.pdf` (una hoja imprimible con los 3 QR)
 
-Antes de imprimir para producción, configurar `PUBLIC_BASE_URL` con la URL pública HTTPS y volver a correr `npm run qr`.
+Antes de imprimir, `PUBLIC_BASE_URL` tiene que ser la URL pública HTTPS: `npm run qr` se niega a generar QR que apunten a `localhost` (para forzarlo: `npm run qr -- --allow-local`).
 
 ## Variables de entorno
 

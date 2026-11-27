@@ -10,7 +10,17 @@ import { stopCode } from '../server/visits.js';
 const outDir = path.resolve('dist/qr');
 
 function baseUrl() {
-  return config.publicBaseUrl.replace(/\/$/, '');
+  const url = config.publicBaseUrl.replace(/\/$/, '');
+  const isLocal = /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/.test(url);
+  if (isLocal && !process.argv.includes('--allow-local')) {
+    console.error(
+      `PUBLIC_BASE_URL apunta a ${url}: un celular no puede abrir esos QR.\n` +
+        'Usá la URL pública (ej. PUBLIC_BASE_URL=https://empremta-production.up.railway.app npm run qr)\n' +
+        'o pasá --allow-local si de verdad querés QR locales (npm run qr -- --allow-local).'
+    );
+    process.exit(1);
+  }
+  return url;
 }
 
 function stopUrl(stop) {
