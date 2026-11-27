@@ -5,6 +5,7 @@
 - `npm run setup` se ejecutó dos veces seguidas sin romper. La segunda corrida no re-fondeó ni duplicó trustlines.
 - `ISSUER` quedó con `auth_required: true` y `auth_revocable: true`.
 - M1 completo: onboarding patrocinado verificado contra testnet real. El visitante quedó con 0 XLM, trustlines HUELLA autorizada + USDC y sponsor `ISSUER`.
+- M2 completo: registro de visita con firma, código HMAC, anti-duplicado SQLite y mint de 10 HUELLA por parada. E2E llegó a 30 HUELLA y rechazó una repetida.
 
 ## Transacciones reales de testnet
 - Flags de ISSUER: https://stellar.expert/explorer/testnet/tx/32d3d8c8d88523712e16da7216b04f4967e1091f12b57659dd1f64d740c72216
@@ -15,6 +16,11 @@
 - Emisión inicial USDC mock a TREASURY: https://stellar.expert/explorer/testnet/tx/6b9a07c28f93b3e4d2118f5ecaeac524cc20a7213870e0174d5fafd034fadaea
 - Onboarding patrocinado de visitante M1: https://stellar.expert/explorer/testnet/tx/4f2509426bc058cf0eb7df6e2f56b047f4fe2a6db93a95bf44cb0124801bd3cf
 - Cuenta visitante M1: https://stellar.expert/explorer/testnet/account/GB6WOWE57JQZBVTXRZMM3OYAYXNNHXWUZXVTOS2MFVDQVNLEY4Q7V5TO
+- Onboarding visitante M2: https://stellar.expert/explorer/testnet/tx/1d259816a8d54cf100484459a93bfca7410a61955a18a0a6b9e7f66d230d0f63
+- Visita `pc`: https://stellar.expert/explorer/testnet/tx/b19ea501bf7adfe666cdff56962880eefcaba2de7a1d1500ddc9c7646a3547eb
+- Visita `plu`: https://stellar.expert/explorer/testnet/tx/ff3e637c26b1fa1637d9e726a69592310b1931aec77bd56d9fbbc3fa2661c8d9
+- Visita `coq`: https://stellar.expert/explorer/testnet/tx/f1e4e6e05d43b37f89078261ea03aed85f99653f0bf391ef5dc9ff532a31702d
+- Cuenta visitante M2: https://stellar.expert/explorer/testnet/account/GBQKDHPRBOT3KUJD66V6755P4WWKILXD6T4UQDW6WKCGX6WW3UFCA7J2
 
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.

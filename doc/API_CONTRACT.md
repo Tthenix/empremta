@@ -44,7 +44,7 @@ Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "abc..." }`
 
 ## POST /api/visit
 Req `{ "publicKey", "stopId", "code", "lat": number|null, "lng": number|null, "ts": number (ms epoch), "signature": "base64" }`
-Signed message: `visita:${stopId}:${ts}` (UTF-8).
+Signed message: `visita:${stopId}:${ts}` (UTF-8). Implementation note: stellar-sdk v17 returns `Uint8Array` from `keypair.sign`; encode with `Buffer.from(signatureBytes).toString("base64")` before sending.
 → `{ "txHash": "...", "huellas": "30.0000000" }` (`huellas` = new balance)
 
 ## GET /api/account/:pub

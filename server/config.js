@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const horizonUrl = process.env.HORIZON_URL || 'https://horizon-testnet.stellar.org';
 if (!horizonUrl.includes('testnet')) {
