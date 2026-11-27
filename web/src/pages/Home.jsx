@@ -63,10 +63,10 @@ export default function Home() {
         </div>
         <figure className="brand-hero-card">
           <img
-            src="/brand/empremta-vertical-color.svg"
-            alt="Empremta"
-            width="622"
-            height="572"
+            src="/icons/app-icon.svg"
+            alt="Símbolo de Empremta"
+            width="1024"
+            height="1024"
             className="brand-hero-logo"
           />
           <figcaption className="brand-hero-caption">

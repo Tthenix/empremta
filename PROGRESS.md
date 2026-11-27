@@ -102,3 +102,23 @@
 - Carteles generados con `PUBLIC_BASE_URL=https://empremta-production.up.railway.app npm run qr`. `qr-paradas-ruta-memoria.pdf` tiene 1 página y `carteles-ruta-memoria.pdf` tiene 3 páginas.
 - Ambos PDF fueron renderizados e inspeccionados. Decodificación QR desde el PDF original: `/v/pc?c=607fa0c7fbacfcbe`, `/v/plu?c=8674be7638a7b6cb`, `/v/coq?c=fa1850502e99d539`, todos bajo `https://empremta-production.up.railway.app`. Decodificación equivalente desde los 3 carteles individuales.
 - Recorrido visual exacto por CDP en `/transparencia` y `/v/pc`: 375×812 (`innerWidth=375`, `scrollWidth=375`, sin overflow horizontal) y 1280×900 (sin overflow horizontal). En `/v/pc` el botón de escucha no aparece porque el relato sigue placeholder, como exige la regla de no leer placeholders.
+
+## Verificación ronda 5 — cartel aprobado y símbolo en Home (2026-11-27)
+- `PUBLIC_BASE_URL=https://empremta-production.up.railway.app npm run qr`: OK. Generó 3 PNG con módulos `#1F4E79`, corrección H e ícono centrado; `qr-paradas-ruta-memoria.pdf` quedó en 1 página y `carteles-ruta-memoria.pdf` en 3 páginas A4 (una por parada).
+- Inspección renderizada de `carteles-ruta-memoria.pdf`: las 3 páginas muestran logo horizontal, nombre de parada, lugar con separadores `·`, llamada azul, marco redondeado, URL corta y pie institucional; no hay páginas extra ni desbordes. Además, los QR decodificados desde el render completo de las 3 páginas devolvieron las mismas URLs exactas de producción.
+- Contraste AA del cartel sobre blanco: tinta `#16202A` 16.48:1, secundario `#4A5866` 7.29:1, azul `#1F4E79` 8.66:1.
+- `node scripts/verify-qr.js`: OK. Salida exacta:
+
+```text
+OK parada-pc.png -> https://empremta-production.up.railway.app/v/pc?c=607fa0c7fbacfcbe
+OK parada-plu.png -> https://empremta-production.up.railway.app/v/plu?c=8674be7638a7b6cb
+OK parada-coq.png -> https://empremta-production.up.railway.app/v/coq?c=fa1850502e99d539
+QR verificados: 3/3 contra https://empremta-production.up.railway.app
+```
+
+- `npm run build`: OK. Bundle inicial `index` 297.95 kB minificado / 94.65 kB gzip; CSS principal 21.42 kB / 4.55 kB gzip; `wallet` diferido 292.92 kB / 71.26 kB gzip; `StopMap` diferido 153.77 kB / 45.16 kB gzip.
+- Home en navegador embebido: 375×812 (`innerWidth=375`, `scrollWidth=375`, sin overflow horizontal; símbolo de app 112 px) y 1280×900 (`innerWidth=1280`, `scrollWidth=1265`, sin overflow horizontal; símbolo de app 120 px).
+- `npm run e2e -- --http`: OK contra testnet real. Resultado final del script: `M1+M2+M3+M4+F1+F2 HTTP OK`.
+- Cuenta visitante principal ronda 5: https://stellar.expert/explorer/testnet/account/GDS23BBHURS5YWART2JYJNBVAZ5IGZCIXOBYN7MNNWPUL627VQNQOORC
+- Onboarding ronda 5: https://stellar.expert/explorer/testnet/tx/9d1c8274139ac785c11379a0951407ca879041e6f763b93343aa2e4227ea3c2a
+- Pago atómico ronda 5: https://stellar.expert/explorer/testnet/tx/c9ad149b4123771ac7a4954bad0db983802d590aaef45534ff96dade527cf80b

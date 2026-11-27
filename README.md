@@ -96,6 +96,12 @@ Genera en `dist/qr/`:
 
 Antes de imprimir, `PUBLIC_BASE_URL` tiene que ser la URL pública HTTPS: `npm run qr` se niega a generar QR que apunten a `localhost` (para forzarlo: `npm run qr -- --allow-local`).
 
+Para comprobar que los PNG generados decodifican a las URLs exactas de producción:
+
+```bash
+node scripts/verify-qr.js
+```
+
 ## Variables de entorno
 
 Copiar `.env.example` o, más simple, correr `npm run setup` y completar/usar el `.env` generado.
