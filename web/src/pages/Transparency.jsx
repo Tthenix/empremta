@@ -77,7 +77,7 @@ export default function Transparency() {
   return (
     <div className="page transparency">
       <header className="transparency-hero">
-        <h1>Transparencia</h1>
+        <h1>Aportes a veteranos</h1>
         <p className="lede">
           Cada pago de la ruta destina una parte al {centroLabel}. El total y cada transferencia
           quedan visibles en la red Stellar (testnet).

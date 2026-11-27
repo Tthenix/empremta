@@ -100,8 +100,8 @@ export default function Pay() {
     return (
       <div className="page">
         <ErrorMsg>Falta información del cobro. Escaneá el QR del comercio.</ErrorMsg>
-        <Link className="btn btn-primary" to="/">
-          Ir al inicio
+        <Link className="btn btn-primary btn-block" to="/escanear">
+          Escanear el QR del comercio
         </Link>
       </div>
     )
@@ -160,13 +160,35 @@ export default function Pay() {
       <ErrorMsg>{error}</ErrorMsg>
 
       {!d ? (
-        <Loading label="Calculando desglose…" />
+        !error && <Loading label="Calculando desglose…" />
       ) : (
         <>
-          <section className="payment-context" aria-label="Datos del cobro">
-            <p className="payment-context-label">Cobro de</p>
-            <p className={isPlaceholder(merchantName) ? 'placeholder-inline' : 'payment-merchant'}>
-              {merchantName}
+          <section className="pay-hero" aria-label="Datos del cobro">
+            <p className="payment-context-label">
+              Pagás en{' '}
+              <span className={isPlaceholder(merchantName) ? 'placeholder-inline' : 'payment-merchant'}>
+                {merchantName}
+              </span>
+            </p>
+            <p className="pay-total">
+              {formatUsdc(d.total)} <span>{label}</span>
+            </p>
+            {Number(d.discount) > 0 && (
+              <p className="pay-saving">
+                Ahorrás {formatUsdc(d.discount)} {label} gracias a tu recorrido
+              </p>
+            )}
+            <div
+              className="split-bar"
+              role="img"
+              aria-label={`De lo que pagás, ${formatUsdc(d.toMerchant)} van al comercio y ${formatUsdc(d.toCentro)} al centro`}
+            >
+              <span style={{ flexGrow: Number(d.toMerchant) || 1 }} />
+              <span className="split-centro" style={{ flexGrow: Number(d.toCentro) || 0 }} />
+            </div>
+            <p className="split-legend" aria-hidden="true">
+              <span><i /> Comercio {formatUsdc(d.toMerchant)}</span>
+              <span><i className="split-centro" /> Centro {formatUsdc(d.toCentro)}</span>
             </p>
             <p className="muted">Ref. {ref}</p>
           </section>

@@ -161,6 +161,15 @@ export async function getBackupSecret() {
   return (await wallet()).getSecretForBackup()
 }
 
+export async function restoreBackupSecret(secret) {
+  const w = await wallet()
+  try {
+    return w.importSecret(secret)
+  } catch {
+    throw new Error('Esa clave no es válida. Revisá que empiece con S y tenga 56 caracteres.')
+  }
+}
+
 export function humanError(e) {
   if (e?.apiError?.message) return e.apiError.message
   if (e?.message) return e.message

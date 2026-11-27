@@ -7,7 +7,7 @@
 
 ## Decisions
 
-1. **Stop codes** — internal links (home, map, journey) open `/v/:stopId` without `c`, to read the story only. The "Registrar mi visita" button appears only when the URL carries the `c` code of the physical QR. The server validates it via HMAC, so a hardcoded code would fail. With the mock, any `c` of 8+ characters works (e.g. `/v/pc?c=12345678`).
+1. **Stop codes** — internal links (home, map, journey) open `/v/:stopId` without `c`, to read the story only. The "Dejar mi huella" button appears only when the URL carries the `c` code of the physical QR. The server validates it via HMAC, so a hardcoded code would fail. With the mock, any `c` of 8+ characters works (e.g. `/v/pc?c=12345678`).
 2. **Map lazy-load** — `StopMap` is a separate chunk via `React.lazy` to keep the initial bundle smaller on mobile data.
 3. **Font** — Source Sans 3 via Google Fonts (single family) for legibility at 18 px without a heavy type stack.
 4. **PWA** — `manifest.webmanifest` + SVG icons only; no service worker (per SPEC).

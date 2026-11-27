@@ -15,11 +15,28 @@ const STOPS = [
     lat: -32.877,
     lng: -68.846,
     coordsVerificadas: false,
-    foto: null,
+    foto: "/fotos/pc.jpg",
+    fotoAlt: "Un soldado con uniforme histórico hace guardia junto al muro del Memorial, iluminado de noche, donde se lee la cronología de Malvinas.",
+    fotoCredito: "Foto: Prensa Municipalidad de Mendoza (vía Sitio Andino)",
+    fotoFuente: "https://www.sitioandino.com.ar/departamentales/ciudad-mendoza-asi-fue-la-tradicional-vigilia-los-veteranos-y-caidos-n5674137",
     audio: null,
+    historiaCorta:
+      'Pensado por veteranos de Malvinas y construido por la Ciudad de Mendoza, el memorial se inauguró el 15 de mayo de 2023 en el Parque Central. Un muro de 50 metros cuenta la historia de Malvinas de un lado y recuerda del otro a los 15 mendocinos caídos en la guerra.',
+    historiaLarga:
+      '### Una idea de los veteranos\n\nLa idea del memorial nació de un grupo de veteranos de Malvinas que le propuso a la Municipalidad de la Ciudad de Mendoza tener un espacio donde recordar a quienes combatieron y a quienes no volvieron.',
+    fuentesLugar: [
+      {
+        label: 'Municipalidad de la Ciudad de Mendoza, 15/5/2023',
+        url: 'https://prensa.ciudaddemendoza.gob.ar/2023/05/15/ulpiano-suarez-inauguro-el-nuevo-memorial-malvinas-argentinas-en-el-parque-central/',
+      },
+    ],
+    testimonioDe: "Miguel Rivero",
     historia:
-      '[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]',
-    fuente: '[Nombre del veterano o agrupación que aporta el relato]',
+      'Miguel Rivero es mendocino, integró la Compañía de Comandos 601 durante la guerra de Malvinas en tareas de reconocimiento y comunicaciones, y forma parte de la Asociación Cuyana de Veteranos de Malvinas (ACUVEMA). Desde allí comparte sus vivencias para mantener viva la memoria:\n\n«No hablemos solo de Malvinas, hablemos de la Patria. Nuestra Argentina es tu casa, donde está tu familia, tus creencias, tus recuerdos, todo, todo tu ser está en Argentina, en tu casa ¿Qué no harías para defender tu casa? Yo creo que haríamos todo ¿Qué no harías por defender a tu familia? Yo creo que daríamos todo».',
+    fuente:
+      'Extracto citado de la entrevista a Miguel Rivero (24/5/2022), en Ecos de Malvinas: 41 años, 41 entrevistas (coord. Mariana Cóvolo y Jorge C. Dragonetti, EdiUC — Universidad de Congreso, 2023, p. 75).',
+    fuenteUrl:
+      'https://ediuc.ucongreso.edu.ar/wp-content/uploads/sites/6/2024/05/Malvinas_digital.pags_.2024.ok_.pdf',
   },
   {
     id: 'plu',
@@ -28,11 +45,28 @@ const STOPS = [
     lat: -32.832,
     lng: -68.793,
     coordsVerificadas: false,
-    foto: null,
+    foto: "/fotos/plu.jpg",
+    fotoAlt: "La plaza con el monumento y dos aviones de la Fuerza Aérea expuestos al aire libre.",
+    fotoCredito: "Foto: Cristian Lozano / Sitio Andino",
+    fotoFuente: "https://www.sitioandino.com.ar/fotogaleria/fotogaleria-los-espacios-que-conmemoran-nuestros-heroes-malvinas-mendoza-n5696428",
     audio: null,
+    historiaCorta:
+      'Junto a la entrada de la IV Brigada Aérea, esta plaza reúne una placa con los nombres de los caídos y tres aviones de la Fuerza Aérea: un A-4C, un Mirage III y un Morane Saulnier MS 760. La brigada existe desde 1933 y es la escuela de pilotos de caza del país.',
+    historiaLarga:
+      '### Un lugar con casi un siglo de historia\n\nLa plaza está en la zona de acceso de la IV Brigada Aérea de la Fuerza Aérea Argentina, en El Plumerillo, departamento de Las Heras.',
+    fuentesLugar: [
+      {
+        label: 'Sitio Andino, espacios de memoria',
+        url: 'https://www.sitioandino.com.ar/fotogaleria/fotogaleria-los-espacios-que-conmemoran-nuestros-heroes-malvinas-mendoza-n5696428',
+      },
+    ],
+    testimonioDe: "Fernando Klix Berrotaran",
     historia:
-      '[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]',
-    fuente: '[PENDIENTE]',
+      'El comodoro (R) Fernando Klix Berrotaran estuvo destinado en 1982 en la IV Brigada Aérea de El Plumerillo, donde voló A-4C y fue instructor en Morane Saulnier antes de ser desplegado a Malvinas como oficial de Control Aéreo Adelantado:\n\n«A principios del año 1982 me tocó ir como instructor a la Escuela de Caza donde yo había sido alumno. (...) Cuando una persona de las Fuerzas Armadas recibe una orden, cada uno debe evaluar si es por el bien del servicio. (...) En este caso no había dudas: definitivamente era por el bien del servicio y de nuestro país. Se iban a recuperar unas islas que estaban usurpadas y nosotros éramos los encargados de ir a defenderlas. Así que nadie dudó en ir a donde teníamos que ir».',
+    fuente:
+      'Extracto citado de la entrevista a Fernando Klix Berrotaran (6/10/2020), en Ecos de Malvinas: 41 años, 41 entrevistas (coord. Mariana Cóvolo y Jorge C. Dragonetti, EdiUC — Universidad de Congreso, 2023, pp. 157–158).',
+    fuenteUrl:
+      'https://ediuc.ucongreso.edu.ar/wp-content/uploads/sites/6/2024/05/Malvinas_digital.pags_.2024.ok_.pdf',
   },
   {
     id: 'coq',
@@ -41,11 +75,28 @@ const STOPS = [
     lat: -32.97,
     lng: -68.75,
     coordsVerificadas: false,
-    foto: null,
+    foto: "/fotos/coq.jpg",
+    fotoAlt: "La rotonda vista desde arriba, con la silueta de las islas Malvinas sobre el césped.",
+    fotoCredito: "Foto: Cristian Lozano / Sitio Andino",
+    fotoFuente: "https://www.sitioandino.com.ar/fotogaleria/fotogaleria-los-espacios-que-conmemoran-nuestros-heroes-malvinas-mendoza-n5696428",
     audio: null,
+    historiaCorta:
+      'En la rotonda de Carril Gómez y Urquiza, vecinos de Maipú votaron remodelar este monumento en 2021. Tiene ocho placas de bronce con los nombres de los 649 caídos argentinos y los escudos de Mendoza y de Maipú. Maipú se reúne ahí a recordar a sus veteranos y a sus caídos.',
+    historiaLarga:
+      '### Un monumento en un cruce\n\nEl monumento está en la rotonda de Malvinas, en el Carril Urquiza y Adriano Gómez, en el distrito de Coquimbito, departamento de Maipú.',
+    fuentesLugar: [
+      {
+        label: 'Cuyo Noticias, 3/4/2021',
+        url: 'https://cuyonoticias.com/contenido/1050/maipu-rindio-homenaje-a-39-anos-de-la-guerra-de-malvinas',
+      },
+    ],
+    testimonioDe: "Ramón Andrés Suárez",
     historia:
-      '[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]',
-    fuente: '[PENDIENTE]',
+      'Ramón Andrés Suárez nació en 1959 en Coquimbito, Maipú, y durante la guerra de Malvinas integró la tripulación del crucero ARA General Belgrano, sobreviviendo a su hundimiento. En su testimonio recuerda a su compañero mendocino Osvaldo Martínez, quien le enseñó a prepararse antes de embarcar:\n\n«Siempre iba a tomarle la guardia a un compañero también mendocino, Osvaldo Martínez, que la tenía reclara porque ya hacía un par de años que estaba en el crucero. Él fue muy empático conmigo. Me contó sobre su vida, que había sido padre hacía poco tiempo… En un momento me pidió que tomara lápiz y papel y que anotara lo que debía conseguir antes del embarque. (...) Hice todo al pie de la letra».',
+    fuente:
+      'Extracto citado de la entrevista a Ramón Andrés Suárez (31/1/2023), en Ecos de Malvinas: 41 años, 41 entrevistas (coord. Mariana Cóvolo y Jorge C. Dragonetti, EdiUC — Universidad de Congreso, 2023, pp. 150–151).',
+    fuenteUrl:
+      'https://ediuc.ucongreso.edu.ar/wp-content/uploads/sites/6/2024/05/Malvinas_digital.pags_.2024.ok_.pdf',
   },
 ]
 
@@ -122,7 +173,7 @@ function fmt(n) {
 }
 
 function stripStop(s) {
-  const { historia, fuente, ...rest } = s
+  const { testimonioDe, historia, fuente, fuenteUrl, historiaCorta, historiaLarga, fuentesLugar, ...rest } = s
   return rest
 }
 

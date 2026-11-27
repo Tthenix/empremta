@@ -28,12 +28,13 @@ Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `T
 ## GET /api/stops
 ```json
 [ { "id": "pc", "nombre": "...", "lugar": "...", "lat": -32.877, "lng": -68.846,
-    "coordsVerificadas": false, "foto": null, "audio": null } ]
+    "coordsVerificadas": false, "foto": "/fotos/pc.jpg", "fotoAlt": "...",
+    "fotoCredito": "Foto: ...", "fotoFuente": "https://...", "audio": null } ]
 ```
-(no `historia`, never `code`)
+(no `historia`, never `code`; `foto*` may be `null`. Wherever the photo is shown, the UI shows `fotoCredito` linked to `fotoFuente`.)
 
 ## GET /api/stops/:id
-Same object plus `"historia": "...", "fuente": "..."`. Placeholders start with `[` — the UI renders them in a grey "Contenido en preparación" box.
+Same object plus `"historiaCorta"`, `"historiaLarga"`, `"fuentesLugar"` (`[{ "label", "url" }]`), `"historia"`, `"fuente"`, `"fuenteUrl"`. Placeholders start with `[` — the UI renders them in a grey "Contenido en preparación" box.
 
 ## POST /api/onboard/build
 Req `{ "publicKey": "G..." }` → `{ "xdr": "AAAA..." }`.

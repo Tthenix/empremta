@@ -36,6 +36,23 @@ export function isPlaceholder(text) {
   return typeof text === 'string' && text.trimStart().startsWith('[')
 }
 
+/** Preferencias livianas del navegador; si el almacenamiento está bloqueado, se ignoran. */
+export function readFlag(key) {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+export function writeFlag(key, value) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    /* almacenamiento bloqueado: la preferencia dura solo esta visita */
+  }
+}
+
 export function randomRef(len = 8) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let out = ''

@@ -51,6 +51,19 @@ export function getSecretForBackup() {
   }
 }
 
+/** Reemplaza la clave de este navegador por una respaldada. Tira error si no es una clave válida. */
+export function importSecret(input) {
+  const secret = String(input || '').replace(/\s+/g, '').toUpperCase()
+  const kp = Keypair.fromSecret(secret)
+  try {
+    localStorage.setItem(STORAGE_KEY, secret)
+  } catch {
+    warnStorageOnce()
+  }
+  memorySecret = secret
+  return kp.publicKey()
+}
+
 /** Sign visit message: visita:${stopId}:${ts} → base64 */
 export function signVisit(stopId, ts) {
   const kp = getOrCreateKeypair()

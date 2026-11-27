@@ -1,26 +1,22 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ensureOnboarded,
+  getAccount,
   getConfig,
   getStop,
+  getStops,
   humanError,
   registerVisit,
 } from '../lib/api.js'
-import PlaceholderBox from '../components/PlaceholderBox.jsx'
+import { getExperience, themeStyle } from '../lib/experiences.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
-import { isPlaceholder } from '../lib/format.js'
-
-function pickSpanishVoice() {
-  const voices = window.speechSynthesis?.getVoices?.() || []
-  return (
-    voices.find((voice) => voice.lang === 'es-AR') ||
-    voices.find((voice) => voice.lang?.toLowerCase().startsWith('es')) ||
-    null
-  )
-}
+import Huella, { HuellaRow } from '../components/Huella.jsx'
+import StoryExperience from '../components/StoryExperience.jsx'
+import StopPhoto from '../components/StopPhoto.jsx'
+import { bestOrder } from '../lib/route.js'
 
 function getGeo() {
   return new Promise((resolve) => {
@@ -36,34 +32,86 @@ function getGeo() {
   })
 }
 
-export default function Stop() {
+function VisitMoment({ done, stops, visitedIds, explorerTxUrl, next }) {
+  const headingRef = useRef(null)
+  useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
+  const total = stops.length || 3
+  const count = visitedIds.size
+  return (
+    <section className="visit-moment" role="status" aria-live="polite">
+      <Huella filled size={88} className="stamp" />
+      <h2 ref={headingRef} tabIndex={-1}>
+        Dejaste tu huella
+      </h2>
+      <HuellaRow total={total} filled={count} size={34} />
+      {next ? (
+        <>
+          <p>
+            Llevás {count} de {total} lugares. Te {total - count === 1 ? 'falta' : 'faltan'}{' '}
+            {total - count}.
+          </p>
+          <Link className="btn btn-primary btn-block" to={`/v/${next.id}`}>
+            Próximo lugar: {next.nombre}
+          </Link>
+        </>
+      ) : (
+        <>
+          <p>Completaste la ruta. Ya podés usar tu descuento en un comercio adherido.</p>
+          <Link className="btn btn-primary btn-block" to="/recorrido">
+            Ver cómo usar mi descuento
+          </Link>
+        </>
+      )}
+      <TxLink hash={done.txHash} explorerTxUrl={explorerTxUrl} label="Ver el registro público" />
+      {count === 1 && (
+        <p className="hint">
+          Tus huellas viven en este celular.{' '}
+          <Link to="/recorrido#respaldo">Guardá tu clave</Link> para no perderlas.
+        </p>
+      )}
+    </section>
+  )
+}
+
+// Remontar por parada: al ir al próximo lugar el estado arranca limpio.
+export default function StopRoute() {
   const { stopId } = useParams()
+  return <Stop key={stopId} stopId={stopId} />
+}
+
+function Stop({ stopId }) {
   const [params] = useSearchParams()
   const code = params.get('c') || ''
+  const navigate = useNavigate()
+  const registerRef = useRef(null)
 
   const [stop, setStop] = useState(null)
+  const [stops, setStops] = useState([])
+  const [visitedIds, setVisitedIds] = useState(new Set())
   const [config, setConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
   const [progress, setProgress] = useState('')
-  const [speechSupported] = useState(() => (
-    typeof window !== 'undefined' &&
-    'speechSynthesis' in window &&
-    'SpeechSynthesisUtterance' in window
-  ))
-  const [speaking, setSpeaking] = useState(false)
-  const [speechStatus, setSpeechStatus] = useState('')
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        const [s, cfg] = await Promise.all([getStop(stopId), getConfig()])
+        const [s, list, cfg] = await Promise.all([getStop(stopId), getStops(), getConfig()])
         if (cancelled) return
         setStop(s)
+        setStops(list)
         setConfig(cfg)
+        try {
+          const acc = await getAccount()
+          if (!cancelled) setVisitedIds(new Set((acc.visits || []).map((v) => v.stopId)))
+        } catch {
+          /* todavía sin billetera */
+        }
       } catch (e) {
         if (!cancelled) setError(humanError(e))
       } finally {
@@ -75,58 +123,19 @@ export default function Stop() {
     }
   }, [stopId])
 
-  useEffect(() => {
-    setSpeaking(false)
-    setSpeechStatus('')
-    return () => {
-      if (speechSupported) window.speechSynthesis.cancel()
-    }
-  }, [stopId, speechSupported])
-
-  function stopSpeech() {
-    window.speechSynthesis.cancel()
-    setSpeaking(false)
-    setSpeechStatus('')
-  }
-
-  function toggleSpeech() {
-    if (!speechSupported || !stop?.historia) return
-    if (speaking) {
-      stopSpeech()
-      return
-    }
-
-    const utterance = new SpeechSynthesisUtterance(stop.historia)
-    const voice = pickSpanishVoice()
-    utterance.lang = voice?.lang || 'es-AR'
-    if (voice) utterance.voice = voice
-    utterance.rate = 0.95
-    utterance.onend = () => {
-      setSpeaking(false)
-      setSpeechStatus('')
-    }
-    utterance.onerror = () => {
-      setSpeaking(false)
-      setSpeechStatus('')
-    }
-
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utterance)
-    setSpeaking(true)
-    setSpeechStatus('Leyendo el relato…')
-  }
-
   async function onRegister() {
     setError('')
     setBusy(true)
     try {
-      setProgress('Preparando la billetera segura de este celular…')
+      setProgress('Preparando este celular. Solo pasa la primera vez…')
       await ensureOnboarded()
-      setProgress('Consultando tu ubicación para verificar que estás en el lugar…')
+      setProgress('Confirmando que estás en el lugar…')
       const { lat, lng } = await getGeo()
-      setProgress('Registrando la visita. Puede tardar unos segundos…')
+      setProgress('Guardando tu huella. Puede tardar unos segundos…')
       const result = await registerVisit({ stopId, code, lat, lng })
+      setVisitedIds((prev) => new Set(prev).add(stopId))
       setDone(result)
+      window.scrollTo({ top: 0 })
     } catch (e) {
       setError(humanError(e))
     } finally {
@@ -135,87 +144,86 @@ export default function Stop() {
     }
   }
 
-  if (loading) return <Loading label="Cargando la parada…" />
-  if (!stop && error) return <ErrorMsg>{error}</ErrorMsg>
-  if (!stop) return <ErrorMsg>No encontramos esa parada.</ErrorMsg>
+  if (loading) return <Loading label="Cargando el lugar…" />
+  if (!stop) return <ErrorMsg>{error || 'No encontramos ese lugar.'}</ErrorMsg>
 
-  const canListen = speechSupported && !stop.audio && !isPlaceholder(stop.historia)
+  const exp = getExperience(stop.id)
+  const position = stops.findIndex((s) => s.id === stop.id) + 1
+  const hasCoords = stop.lat != null && stop.lng != null
+  const alreadyVisited = visitedIds.has(stop.id)
+  const canRegister = code && !done && !alreadyVisited
+  // Desde este lugar, el próximo es el primero del camino más corto entre los que faltan.
+  const nextStop = bestOrder(stop, stops.filter((s) => s.id !== stop.id && !visitedIds.has(s.id)))[0]
+
+  let finishLabel = 'Volver a la ruta'
+  let onFinish = () => navigate('/')
+  if (canRegister) {
+    finishLabel = 'Dejar mi huella'
+    onFinish = () => {
+      registerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      registerRef.current?.querySelector('button')?.focus({ preventScroll: true })
+    }
+  } else if (nextStop) {
+    finishLabel = `Próximo lugar: ${nextStop.nombre}`
+    onFinish = () => navigate(`/v/${nextStop.id}`)
+  }
 
   return (
-    <div className="page stop">
-      <h1>{stop.nombre}</h1>
-      <p className="stop-location">{stop.lugar}</p>
-
-      {stop.foto ? (
-        <img className="stop-photo" src={stop.foto} alt={`Vista de ${stop.nombre}`} />
-      ) : (
-        <div className="photo-placeholder">
-          <span>Fotografía pendiente</span>
-        </div>
-      )}
-
-      <section aria-labelledby="historia-title">
-        <h2 id="historia-title">La historia de este lugar</h2>
-        <PlaceholderBox text={stop.historia} />
-        {stop.fuente && <PlaceholderBox text={stop.fuente} label="Fuente" />}
-        {canListen && (
-          <div className="listen-controls">
-            <button
-              type="button"
-              className="btn btn-secondary listen-button"
-              aria-pressed={speaking}
-              onClick={toggleSpeech}
-            >
-              {speaking ? 'Detener' : 'Escuchar el relato'}
-            </button>
-            <div className="sr-status" role="status" aria-live="polite" aria-atomic="true">
-              {speechStatus}
-            </div>
-          </div>
+    <div className="page stop-xp" style={themeStyle(stop.id)}>
+      <header className="xp-hero">
+        <StopPhoto stop={stop} className="xp-photo" />
+        <Link className="xp-back" to="/">
+          ← La ruta
+        </Link>
+        {position > 0 && (
+          <p className="xp-step">
+            Lugar {position} de {stops.length}
+            {alreadyVisited && !done && <span className="xp-visited"> · Ya dejaste tu huella</span>}
+          </p>
         )}
-        {stop.audio && (
-          <audio controls src={stop.audio} className="stop-audio">
-            Tu navegador no reproduce audio.
-          </audio>
+        <h1>{stop.nombre}</h1>
+        <p className="xp-place">{stop.lugar}</p>
+        {hasCoords && (
+          <a
+            className="xp-maps"
+            href={`https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Cómo llegar
+          </a>
         )}
-      </section>
+      </header>
 
       {done ? (
-        <div className="success-box" role="status" aria-live="polite" aria-atomic="true">
-          <p>Tu visita quedó registrada.</p>
-          <p>
-            Huellas ahora: <strong>{Number(done.huellas).toFixed(0)}</strong>
-          </p>
-          <TxLink hash={done.txHash} explorerTxUrl={config?.explorerTxUrl} />
-          <div className="btn-row">
-            <Link className="btn btn-primary" to="/recorrido">
-              Ver mi recorrido
-            </Link>
-            <Link className="btn btn-secondary" to="/">
-              Volver al inicio
-            </Link>
+        <VisitMoment done={done} stops={stops} visitedIds={visitedIds} explorerTxUrl={config?.explorerTxUrl} next={nextStop} />
+      ) : canRegister ? (
+        <section className="register-card" ref={registerRef} aria-label="Dejar tu huella">
+          <Huella filled size={44} />
+          <div>
+            <p className="register-title">Estás en el lugar</p>
+            <p className="register-sub">Tocá el botón para dejar tu huella. No hace falta instalar ni escribir nada.</p>
           </div>
-        </div>
-      ) : code ? (
-        <section className="stop-action" aria-label="Registrar visita">
           <ErrorMsg>{error}</ErrorMsg>
-          <button type="button" className="btn btn-primary btn-block" onClick={onRegister} disabled={busy}>
-            {busy ? 'Registrando…' : 'Registrar mi visita'}
+          <button type="button" className="btn btn-primary btn-block btn-big" onClick={onRegister} disabled={busy}>
+            {busy ? 'Guardando…' : 'Dejar mi huella'}
           </button>
           <div className="progress-note" role="status" aria-live="polite" aria-atomic="true">
             {progress}
           </div>
-          <p className="hint">
-            La primera vez se crea una billetera segura en este celular. No tenés que escribir
-            claves ni instalar nada.
-          </p>
         </section>
       ) : (
-        <p className="scan-note">
-          Para registrar tu visita, escaneá con la cámara del celular el código QR que está en
-          este lugar.
-        </p>
+        !alreadyVisited && (
+          <div className="scan-note">
+            <p>Cuando estés en el lugar, escaneá el código QR del cartel para dejar tu huella.</p>
+            <Link className="btn btn-primary btn-block" to="/escanear">
+              Escanear el QR
+            </Link>
+          </div>
+        )
       )}
+
+      <StoryExperience key={stop.id} stop={stop} exp={exp} onFinish={onFinish} finishLabel={finishLabel} />
     </div>
   )
 }

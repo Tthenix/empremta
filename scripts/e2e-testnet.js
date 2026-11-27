@@ -280,7 +280,7 @@ async function verifyHttpContract(visitor, paymentInfo) {
   assert(Array.isArray(stopList) && stopList.length === 3, 'GET /api/stops no devolvió 3 paradas');
   assert(!('historia' in stopList[0]) && !('code' in stopList[0]), 'GET /api/stops expone historia o code');
   const stopDetail = await getJson('/api/stops/pc');
-  assert(typeof stopDetail.historia === 'string' && stopDetail.historia.startsWith('['), 'detalle de parada sin placeholder de historia');
+  assert(typeof stopDetail.historia === 'string' && stopDetail.historia.length > 0, 'detalle de parada sin historia');
   const merchants = await getJson('/api/merchants');
   assert(Array.isArray(merchants) && merchants[0]?.pub, 'GET /api/merchants sin pub');
   const account = await getJson(`/api/account/${visitor.publicKey()}`);

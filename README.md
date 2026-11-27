@@ -162,4 +162,9 @@ https://stellar.expert/explorer/testnet/tx/d2c5b5f8ab4fff642c707d4f9c1775063b0f2
 
 ## Contenido y límites éticos
 
-Los textos históricos en `content/stops.json` son placeholders visibles. No se inventaron testimonios, citas, biografías ni anécdotas. La validación con veteranos y comerciantes queda como tarea humana en `VALIDACION.md` y SPEC §17.
+- **Reseñas de los monumentos:** basadas en fuentes públicas oficiales y periodísticas documentadas en [STORYTELLING.md](STORYTELLING.md) (Municipalidad de la Ciudad de Mendoza, Gobierno de Mendoza, Fuerza Aérea Argentina, Diario UNO, Los Andes, Sitio Andino, Mendoza Post y Cuyo Noticias).
+- **Extractos de testimonios en `content/stops.json`:** citas textuales atribuidas del libro *Ecos de Malvinas: 41 años, 41 entrevistas* (coord. Mariana Cóvolo y Jorge C. Dragonetti; Ediciones Universidad de Congreso — EdiUC, Mendoza, 2023, ISBN `978-987-82840-1-9`, [PDF oficial](https://ediuc.ucongreso.edu.ar/wp-content/uploads/sites/6/2024/05/Malvinas_digital.pags_.2024.ok_.pdf)):
+  - Parque Central (`pc`): Miguel Rivero (24/5/2022), p. 75.
+  - IV Brigada Aérea, El Plumerillo (`plu`): Fernando Klix Berrotaran (6/10/2020), pp. 157–158.
+  - Coquimbito, Maipú (`coq`): Ramón Andrés Suárez (31/1/2023), pp. 150–151.
+- No se inventaron testimonios, citas, biografías ni anécdotas. La confirmación de derechos con EdiUC y la validación con veteranos y comerciantes quedan documentadas en `VALIDACION.md` y SPEC §17.

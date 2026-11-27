@@ -9,8 +9,8 @@ import { stops } from '../server/content.js';
 import { stopCode } from '../server/visits.js';
 
 const outDir = path.resolve('dist/qr');
-const horizontalLogoPath = path.resolve('doc/brand/png/empremta-horizontal-color.png');
-const appIconPath = path.resolve('doc/brand/png/empremta-icono-app.png');
+const horizontalLogoPath = path.resolve('doc/empremta-marca/logo/png/empremta-horizontal-color.png');
+const appIconPath = path.resolve('doc/empremta-marca/web/empremta-icono-app-1024.png');
 const regularFontPath = path.resolve('doc/brand/fonts/Archivo-Regular.ttf');
 const boldFontPath = path.resolve('doc/brand/fonts/Archivo-Bold.ttf');
 

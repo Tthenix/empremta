@@ -28,12 +28,24 @@ export function stopListItem(stop) {
     lng: stop.lng,
     coordsVerificadas: stop.coordsVerificadas,
     foto: stop.foto,
+    fotoAlt: stop.fotoAlt || null,
+    fotoCredito: stop.fotoCredito || null,
+    fotoFuente: stop.fotoFuente || null,
     audio: stop.audio
   };
 }
 
 export function stopDetail(stop) {
-  return { ...stopListItem(stop), historia: stop.historia, fuente: stop.fuente };
+  return {
+    ...stopListItem(stop),
+    historiaCorta: stop.historiaCorta || null,
+    historiaLarga: stop.historiaLarga || null,
+    fuentesLugar: stop.fuentesLugar || [],
+    testimonioDe: stop.testimonioDe || null,
+    historia: stop.historia,
+    fuente: stop.fuente,
+    fuenteUrl: stop.fuenteUrl || null
+  };
 }
 
 export function merchantListItem(merchant) {

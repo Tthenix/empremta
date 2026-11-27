@@ -10,6 +10,7 @@ const Pay = lazy(() => import('./pages/Pay.jsx'))
 const Merchant = lazy(() => import('./pages/Merchant.jsx'))
 const Transparency = lazy(() => import('./pages/Transparency.jsx'))
 const About = lazy(() => import('./pages/About.jsx'))
+const Scan = lazy(() => import('./pages/Scan.jsx'))
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/comercio/:id" element={<Merchant />} />
             <Route path="/transparencia" element={<Transparency />} />
             <Route path="/acerca" element={<About />} />
+            <Route path="/escanear" element={<Scan />} />
           </Route>
         </Routes>
       </Suspense>

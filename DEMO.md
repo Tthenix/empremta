@@ -42,8 +42,8 @@ Mostrar el mapa y aclarar que los textos históricos actuales son placeholders h
 ### 0:20–1:05 — Visita y prueba on-chain
 
 1. Abrir la URL de `pc`.
-2. Tocar **“Registrar mi visita”**.
-3. Mostrar que aparece el link **“Ver en Stellar”** y el contador de Huellas.
+2. Tocar **“Dejar mi huella”**.
+3. Mostrar la pantalla **“Dejaste tu huella”**: las 3 huellas de progreso, el botón al próximo lugar y el link **“Ver el registro público”** (Stellar).
 4. Repetir rápido con `plu` y `coq`.
 
 Decir:
