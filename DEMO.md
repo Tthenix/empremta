@@ -1,3 +1,106 @@
 # DEMO — guion de 3 minutos
 
-(pendiente de completar cuando la integración esté lista)
+Objetivo: mostrar que una visita a lugares de memoria se convierte en apoyo económico verificable para veteranos, sin que la persona visitante tenga que entender cripto.
+
+## Preparación (antes de filmar)
+
+1. Levantar la app integrada:
+   ```bash
+   npm ci
+   npm run setup
+   npm run build
+   npm start
+   ```
+2. Abrir dos contextos de navegador distintos:
+   - **Visitante:** navegador normal o celular.
+   - **Comercio:** ventana de incógnito u otro navegador.
+3. Confirmar que el servidor responde:
+   - `http://localhost:3000/api/config`
+   - `http://localhost:3000/transparencia`
+4. Si se filma con URL pública, reemplazar `http://localhost:3000` por esa URL y regenerar los QR con `npm run qr`.
+
+## URLs de paradas para la demo local
+
+Estas URLs equivalen a escanear los QR impresos **con el `.env` actual de esta worktree**. Si se regenera `QR_SECRET` o se despliega en otra URL, usar los enlaces que imprime `npm run qr` en el PDF/PNG y reemplazar el dominio:
+
+- Parque Central / pc: `http://localhost:3000/v/pc?c=607fa0c7fbacfcbe`
+- Plaza Uncal / plu: `http://localhost:3000/v/plu?c=8674be7638a7b6cb`
+- Coquimbito / coq: `http://localhost:3000/v/coq?c=fa1850502e99d539`
+
+## Guión
+
+### 0:00–0:20 — La idea
+
+Abrir `http://localhost:3000/` en el navegador del visitante.
+
+Decir:
+
+> “Esta es una ruta de memoria de Malvinas en Mendoza. En cada parada la persona lee una historia y deja registrado su paso. Ese registro no es solo simbólico: después se transforma en apoyo económico verificable para veteranos.”
+
+Mostrar el mapa y aclarar que los textos históricos actuales son placeholders hasta validar testimonios reales.
+
+### 0:20–1:05 — Visita y prueba on-chain
+
+1. Abrir la URL de `pc`.
+2. Tocar **“Registrar mi visita”**.
+3. Mostrar que aparece el link **“Ver en Stellar”** y el contador de Huellas.
+4. Repetir rápido con `plu` y `coq`.
+
+Decir:
+
+> “La cuenta y las trustlines fueron patrocinadas. La persona no pagó gas ni copió una frase secreta. La clave queda en su navegador; el servidor nunca la recibe.”
+
+### 1:05–1:30 — Recorrido y saldo demo
+
+1. Abrir `http://localhost:3000/recorrido`.
+2. Mostrar `30` Huellas.
+3. Tocar **“Cargar saldo de prueba”**.
+4. Mostrar que el saldo de prueba aparece y que el recorrido explica el canje.
+
+Decir:
+
+> “En la hackathon usamos USDC de testnet. El fondeo demo existe solo para que cualquiera pueda probar el flujo.”
+
+### 1:30–2:15 — Cobro en comercio
+
+1. En el navegador del comercio abrir `http://localhost:3000/comercio/m1`.
+2. Dejar monto `2.50` y tocar **“Generar cobro”**.
+3. Copiar la URL `/pagar?...` generada o escanear el QR con el navegador/celular del visitante.
+4. En el visitante, mostrar el desglose antes de confirmar:
+   - total original;
+   - descuento por 30 Huellas;
+   - parte para el comercio;
+   - parte para el Centro de Veteranos.
+5. Confirmar el pago.
+6. Volver a la ventana del comercio y esperar el estado **“Pago recibido”**.
+
+Decir:
+
+> “Acá está la parte que una base de datos no reemplaza: el pago al comercio, el aporte al centro y la quema de Huellas ocurren en una sola transacción atómica. Además el servidor envuelve la transacción en fee-bump, así que el visitante sigue con 0 XLM.”
+
+### 2:15–2:45 — Transparencia pública
+
+Abrir `http://localhost:3000/transparencia`.
+
+Mostrar:
+
+- total recibido por el centro;
+- desglose por comercio;
+- lista de aportes;
+- link a stellar.expert de la transacción recién hecha.
+
+Decir:
+
+> “Cualquiera puede auditar que el aporte llegó. No depende de confiar en nuestra base de datos.”
+
+### 2:45–3:00 — Cierre y honestidad del prototipo
+
+Decir:
+
+> “Los contenidos históricos todavía son placeholders porque no vamos a inventar testimonios. El próximo paso humano es validar el tono con veteranos, reemplazar los textos por historias cedidas con permiso y probar con un comercio real. La infraestructura ya funciona de punta a punta en Stellar testnet.”
+
+## Links de evidencia técnica
+
+Si falla la red durante la filmación, usar los hashes reales ya verificados en `PROGRESS.md`, especialmente el pago atómico:
+
+https://stellar.expert/explorer/testnet/tx/d2c5b5f8ab4fff642c707d4f9c1775063b0f290c673955dc8bf98606a9e08de3

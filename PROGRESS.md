@@ -1,7 +1,7 @@
 # PROGRESS — Ruta de la Memoria de Malvinas
 
 ## Estado actual
-- M0 completo: scaffold ESM Node 20+, `.env.example`, contenido placeholder y setup idempotente de testnet.
+- M0 completo: scaffold ESM Node 22+, `.env.example`, contenido placeholder y setup idempotente de testnet.
 - `npm run setup` se ejecutó dos veces seguidas sin romper. La segunda corrida no re-fondeó ni duplicó trustlines.
 - `ISSUER` quedó con `auth_required: true` y `auth_revocable: true`.
 - M1 completo: onboarding patrocinado verificado contra testnet real. El visitante quedó con 0 XLM, trustlines HUELLA autorizada + USDC y sponsor `ISSUER`.
@@ -9,6 +9,9 @@
 - M3 completo: fondeo demo una sola vez, pago `2.50` con canje de 30 HUELLA, split atómico exacto, quema a 0 y fee-bump dejando al visitante con 0 XLM.
 - M4 completo: API Express + SQLite con las formas de `doc/API_CONTRACT.md`. `npm run e2e -- --http` pasó el flujo completo por HTTP y verificó config, stops, account, merchants, payments y transparencia.
 - M7 completo: `npm run qr` generó 3 PNG y un PDF imprimible en `dist/qr/`; `docker build` y `docker run` + smoke `/api/config` pasaron. README documenta local, Docker y Railway.
+- Integración completa: `feat/ruta-memoria-web` mergeado sin conflictos, `npm run build` OK, `npm start` sirvió `/`, `/transparencia` y `/api/config`, y Docker final construye el frontend real y pasa smoke en contenedor.
+- Compatibilidad de integración verificada: una corrida HTTP completa usó la serialización `Uint8Array` del navegador en la primera firma de visita y el backend la verificó criptográficamente sin cambiar el contrato base64.
+
 
 ## Transacciones reales de testnet
 - Flags de ISSUER: https://stellar.expert/explorer/testnet/tx/32d3d8c8d88523712e16da7216b04f4967e1091f12b57659dd1f64d740c72216
@@ -36,6 +39,14 @@
 - Cuenta visitante M4: https://stellar.expert/explorer/testnet/account/GCGONNVGJOAQX7A5QJYQMVICYHERA5EQLH2EIUJJGY4ZU2H2LWCE3ZYF
 - Re-verificación HTTP tras actualizar dependencias/Express: pago https://stellar.expert/explorer/testnet/tx/07d930d972f34be13c232182a72a3156cb2c91e255931f4e2ad2a67f23eec35a
 - Cuenta de esa re-verificación: https://stellar.expert/explorer/testnet/account/GCY7KOYPQASE5MXEQZYAOBGPJFB6TJDQXK2TVOSJHBFC6L7R2GLWT73T
+
+## Última verificación integral HTTP (testnet real)
+- Cuenta visitante: https://stellar.expert/explorer/testnet/account/GDCEBSHW2WUQPGCNJUDE3HLIPDG65S6WPPWHSMPWNTGIOP2U3SDPGXHJ
+- Onboarding patrocinado: https://stellar.expert/explorer/testnet/tx/90e2c8b3e56783f2f1523923f42769e9cc838215b265679ad24729d828dbcd32
+- Visitas: https://stellar.expert/explorer/testnet/tx/dfd76fbab09c991e910087a6299551dd30ed0e7d53539755094794c02673face · https://stellar.expert/explorer/testnet/tx/ea6b795555ef04ff4c6362e821286af7501facbe3d99d692b04145cd45544acf · https://stellar.expert/explorer/testnet/tx/f791d49342c7e158e2b0d25020d2a5a812cc961488bb8c9463f2acdd2253f62d
+- Fondeo demo: https://stellar.expert/explorer/testnet/tx/229db8f76e8215c3d16c489065103e8bc5bf6adaf09f8d82a63244eb7d838e68
+- Pago atómico con split, quema y fee-bump: https://stellar.expert/explorer/testnet/tx/d2c5b5f8ab4fff642c707d4f9c1775063b0f290c673955dc8bf98606a9e08de3
+- Resultado verificado por el e2e: comercio `+2.1375000`, centro `+0.1125000`, HUELLA del visitante `0.0000000`, XLM del visitante `0.0000000`.
 
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.

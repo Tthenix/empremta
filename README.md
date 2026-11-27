@@ -138,7 +138,7 @@ Para `USDC_MODE=circle`, un humano debe fondear `TREASURY` en https://faucet.cir
 
 Las transacciones de testnet más recientes del flujo HTTP completo están en `PROGRESS.md`. Ejemplo clave del split atómico + quema + fee-bump:
 
-https://stellar.expert/explorer/testnet/tx/21dc16c97e23d080948391ca0054afead053a13b034310bfbc09f3437bb5e122
+https://stellar.expert/explorer/testnet/tx/d2c5b5f8ab4fff642c707d4f9c1775063b0f290c673955dc8bf98606a9e08de3
 
 ## Contenido y límites éticos
 
