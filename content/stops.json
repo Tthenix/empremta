@@ -1,0 +1,38 @@
+[
+  {
+    "id": "pc",
+    "nombre": "Memorial Malvinas Argentinas",
+    "lugar": "Parque Central, Ciudad de Mendoza",
+    "lat": -32.877,
+    "lng": -68.846,
+    "coordsVerificadas": false,
+    "foto": null,
+    "audio": null,
+    "historia": "[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]",
+    "fuente": "[Nombre del veterano o agrupación que aporta el relato]"
+  },
+  {
+    "id": "plu",
+    "nombre": "Plaza Héroes de Malvinas",
+    "lugar": "IV Brigada Aérea, El Plumerillo",
+    "lat": -32.832,
+    "lng": -68.793,
+    "coordsVerificadas": false,
+    "foto": null,
+    "audio": null,
+    "historia": "[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]",
+    "fuente": "[PENDIENTE]"
+  },
+  {
+    "id": "coq",
+    "nombre": "Monumento a los Caídos en Malvinas",
+    "lugar": "Rotonda carril Gómez y Urquiza, Coquimbito, Maipú",
+    "lat": -32.97,
+    "lng": -68.75,
+    "coordsVerificadas": false,
+    "foto": null,
+    "audio": null,
+    "historia": "[HISTORIA PENDIENTE — la aporta un veterano. No completar con texto inventado.]",
+    "fuente": "[PENDIENTE]"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "m1",
+    "nombre": "[COMERCIO PENDIENTE]",
+    "direccion": "[PENDIENTE]",
+    "pubkeyEnv": "MERCHANT_1_PUB",
+    "pctCentro": 5,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "id": "m2",
+    "nombre": "[COMERCIO PENDIENTE 2]",
+    "direccion": "[PENDIENTE]",
+    "pubkeyEnv": "MERCHANT_2_PUB",
+    "pctCentro": 5,
+    "lat": null,
+    "lng": null
+  }
+]
