@@ -70,3 +70,16 @@
 - Repaso manual posterior a cambios a 375 px (`/`, `/v/pc`, `/recorrido`, `/pagar`, `/comercio/m1`, `/transparencia`, `/acerca`): sin overflow horizontal; acciones principales miden 55 px de alto.
 - Comprobación equivalente a zoom 200 % sobre viewport desktop de 1280 px (layout a 640 CSS px): las mismas 7 pantallas no presentan overflow horizontal.
 - Detector manual Impeccable sobre archivos web modificados: `[]` (sin hallazgos mecánicos).
+
+## Verificación ronda 3 — integración de marca y calidad visual (2026-11-27)
+- `npm --prefix web run build`: OK. Bundle inicial `index` 297.95 kB minificado / 94.64 kB gzip; CSS principal 20.71 kB / 4.43 kB gzip; `wallet` diferido 292.92 kB / 71.26 kB gzip; `StopMap` diferido 153.77 kB / 45.16 kB gzip.
+- `npm run e2e -- --http`: OK contra testnet real. Resultado final del script: `M1+M2+M3+M4 HTTP OK`.
+- Flujo e2e: onboarding patrocinado, 3 visitas, rechazo de visita repetida, fondeo demo, desglose previo, pago fee-bump y verificación de contratos HTTP.
+- Desglose e2e verificado antes de firmar: total cobro `2.5000000`; descuento `0.2500000`; total pagado `2.2500000`; comercio `+2.1375000`; centro `+0.1125000`; HUELLA final `0.0000000`; XLM visitante `0.0000000`.
+- Cuenta visitante e2e ronda 3: https://stellar.expert/explorer/testnet/account/GDUWGRNQLNVD5GBFPTCVE4KDIGE7YAEL3DIUCEQMBLKXJ6NW6ZMZIDVV
+- Onboarding e2e ronda 3: https://stellar.expert/explorer/testnet/tx/1787539a31b7b7b59f5685617b5d21ad0670fdf3cc67b0470143211ae0f0adc5
+- Pago e2e ronda 3: https://stellar.expert/explorer/testnet/tx/14672353cbcaa38a7d31d4844159e8583e2a566778006880849e91c29f059700
+- Recorrido renderizado posterior al build final a 375×812 y desktop 1280×900 en `/`, `/v/pc`, `/recorrido`, `/pagar`, `/comercio/m1`, `/transparencia` y `/acerca`: las 7 pantallas sin overflow horizontal.
+- Verificación visual adicional: la acción “Registrar mi visita” queda dentro del primer viewport desktop en `/v/pc`; foco visible definido con outline de 3 px; `prefers-reduced-motion` reduce transiciones/animaciones globalmente.
+- Detector mecánico Impeccable final sobre los archivos web modificados: `[]` (sin hallazgos).
+- Tabla numérica de contraste AA de la paleta de marca: `web/UX-AUDIT.md`, sección “Ronda 3 — integración de marca y verificación de contraste”.

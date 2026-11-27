@@ -127,3 +127,47 @@ Queda abierto / depende de validación humana:
 - Contenido histórico real, fotografías propias y atribución: pendiente por diseño hasta hablar con veteranos/organizaciones.
 - Selección de comercio real y validación del pitch.
 - El bundle inicial sigue siendo 296.97 kB minificado / 94.32 kB gzip por React/router/base; ya no incluye el SDK Stellar ni el mapa, pero se podría evaluar un vendor split más fino solo si la medición en Android real lo justifica.
+
+## Ronda 3 — integración de marca y verificación de contraste (2026-11-27)
+
+### Tabla de contrastes medidos
+
+Cálculo de luminancia relativa WCAG sobre los tokens finales de `web/src/index.css`. AA exige 4.5:1 para texto normal, 3:1 para texto grande y 3:1 para indicadores/controles. Todos los pares de texto/fondo usados superan AA.
+
+| Texto / fondo | Uso principal | Contraste | Resultado |
+|---|---|---:|---|
+| `#16202A` / `#FFFFFF` | texto principal sobre tarjetas | 16.48:1 | AA |
+| `#16202A` / `#F4F7FA` | texto principal sobre fondo | 15.33:1 | AA |
+| `#16202A` / `#EAF3FA` | texto sobre superficie celeste suave | 14.68:1 | AA |
+| `#16202A` / `#D8E8F4` | texto sobre fila destacada | 13.16:1 | AA |
+| `#16202A` / `#EEF2F5` | texto sobre placeholders/empty states | 14.64:1 | AA |
+| `#4A5866` / `#FFFFFF` | texto secundario sobre tarjetas | 7.29:1 | AA |
+| `#4A5866` / `#F4F7FA` | texto secundario sobre fondo | 6.78:1 | AA |
+| `#4A5866` / `#EAF3FA` | texto secundario sobre superficie celeste | 6.50:1 | AA |
+| `#4A5866` / `#D8E8F4` | texto secundario sobre fila destacada | 5.82:1 | AA |
+| `#4A5866` / `#EEF2F5` | texto secundario en placeholders | 6.48:1 | AA |
+| `#4A5866` / `#F8FAFC` | texto secundario en panel neutro | 6.97:1 | AA |
+| `#1F4E79` / `#FFFFFF` | links y botones secundarios sobre tarjetas | 8.66:1 | AA |
+| `#1F4E79` / `#F4F7FA` | links, nav y foco sobre fondo | 8.06:1 | AA |
+| `#1F4E79` / `#EAF3FA` | links/botones sobre celeste suave | 7.71:1 | AA |
+| `#1F4E79` / `#D8E8F4` | texto de marca sobre fila destacada | 6.92:1 | AA |
+| `#FFFFFF` / `#1F4E79` | texto en botón primario | 8.66:1 | AA |
+| `#FFFFFF` / `#183E61` | texto en hover de botón primario | 11.05:1 | AA |
+| `#FFFFFF` / `#122E49` | texto en estado activo de botón primario | 13.88:1 | AA |
+| `#FFFFFF` / `#16202A` | texto principal en panel oscuro de transparencia | 16.48:1 | AA |
+| `#C9D9E7` / `#16202A` | texto secundario en panel oscuro | 11.43:1 | AA |
+| `#9CC9EE` / `#16202A` | celeste de marca sobre oscuro | 9.42:1 | AA |
+| `#7A2A24` / `#FDF0EE` | error sobre fondo de error | 8.64:1 | AA |
+| `#174C2A` / `#EAF5EE` | éxito sobre fondo de éxito | 8.93:1 | AA |
+| `#16202A` / `#6CACE4` | selección de texto | 6.80:1 | AA |
+
+Notas:
+
+- `#6CACE4` (celeste islas) se reserva para acentos gráficos, subrayados, selección y bordes; no se usa como color de texto sobre fondo claro porque mediría 2.43:1 sobre blanco.
+- El foco visible usa `#1F4E79` sobre superficies claras (8.06:1 o más contra el fondo) y `#9CC9EE` dentro del panel oscuro (9.42:1).
+- La barra de progreso usa `#1F4E79` sobre una pista `#D8E8F4`; además el progreso está expresado en texto (“Visitaste X de 3”), por lo que no depende solo del color.
+
+### Resultado visual y detector
+
+- Detector mecánico Impeccable sobre los archivos modificados de la ronda: `[]` (sin hallazgos).
+- Verificación manual renderizada a 375 px y desktop documentada en `PROGRESS.md` al cierre de la ronda.
