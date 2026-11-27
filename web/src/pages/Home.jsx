@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAccount, getConfig, getStops, humanError } from '../lib/api.js'
-import { getPublicKey } from '../lib/wallet.js'
 import { formatAmount } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
@@ -24,7 +23,7 @@ export default function Home() {
         setConfig(cfg)
         setStops(list)
         try {
-          const acc = await getAccount(getPublicKey())
+          const acc = await getAccount()
           if (!cancelled) setAccount(acc)
         } catch {
           /* no wallet yet is fine */

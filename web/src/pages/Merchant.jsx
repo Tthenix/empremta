@@ -23,7 +23,7 @@ export default function Merchant() {
   const [payment, setPayment] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const sinceRef = useRef(Date.now())
+  const sinceRef = useRef(0)
 
   useEffect(() => {
     let cancelled = false

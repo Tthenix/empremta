@@ -3,9 +3,12 @@
  * Shapes match doc/API_CONTRACT.md exactly.
  */
 import * as mock from './mockApi.js'
-import { getPublicKey, signVisit, signXdr } from './wallet.js'
 
 const USE_MOCK = import.meta.env.VITE_API_MOCK === 'true'
+
+async function wallet() {
+  return import('./wallet.js')
+}
 
 async function request(path, options = {}) {
   const res = await fetch(path, {
@@ -74,6 +77,7 @@ export async function onboardSubmit(signedXdr) {
  * In mock mode, fake XDR cannot be signed by the SDK — we mark onboarded and submit the label.
  */
 export async function ensureOnboarded() {
+  const { getPublicKey, signXdr } = await wallet()
   const publicKey = getPublicKey()
   const built = await onboardBuild(publicKey)
   if (built.alreadyOnboarded) return { alreadyOnboarded: true }
@@ -88,6 +92,7 @@ export async function ensureOnboarded() {
 }
 
 export async function registerVisit({ stopId, code, lat, lng }) {
+  const { getPublicKey, signVisit } = await wallet()
   const publicKey = getPublicKey()
   const ts = Date.now()
   const signature = signVisit(stopId, ts)
@@ -97,13 +102,13 @@ export async function registerVisit({ stopId, code, lat, lng }) {
 }
 
 export async function getAccount(pub) {
-  const publicKey = pub || getPublicKey()
+  const publicKey = pub || (await wallet()).getPublicKey()
   if (USE_MOCK) return mock.getAccountInfo(publicKey)
   return request(`/api/account/${encodeURIComponent(publicKey)}`)
 }
 
 export async function payBuild({ merchantId, amount, ref, useHuellas }) {
-  const publicKey = getPublicKey()
+  const publicKey = (await wallet()).getPublicKey()
   const body = { publicKey, merchantId, amount, ref, useHuellas }
   if (USE_MOCK) return mock.payBuild(body)
   return request('/api/pay/build', { method: 'POST', body: JSON.stringify(body) })
@@ -122,6 +127,7 @@ export async function confirmPay({ merchantId, amount, ref, useHuellas, xdr }) {
   if (USE_MOCK) {
     return paySubmit(xdr)
   }
+  const { signXdr } = await wallet()
   const signedXdr = signXdr(xdr)
   return paySubmit(signedXdr)
 }
@@ -143,12 +149,16 @@ export async function getTransparencia() {
 }
 
 export async function demoFund() {
-  const publicKey = getPublicKey()
+  const publicKey = (await wallet()).getPublicKey()
   if (USE_MOCK) return mock.demoFund({ publicKey })
   return request('/api/demo/fund', {
     method: 'POST',
     body: JSON.stringify({ publicKey }),
   })
+}
+
+export async function getBackupSecret() {
+  return (await wallet()).getSecretForBackup()
 }
 
 export function humanError(e) {

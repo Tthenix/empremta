@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { demoFund, getAccount, getConfig, getStops, humanError } from '../lib/api.js'
-import { getPublicKey, getSecretForBackup } from '../lib/wallet.js'
+import {
+  demoFund,
+  getAccount,
+  getBackupSecret,
+  getConfig,
+  getStops,
+  humanError,
+} from '../lib/api.js'
 import { formatAmount, formatDate } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
@@ -14,6 +20,7 @@ export default function Journey() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showSecret, setShowSecret] = useState(false)
+  const [secret, setSecret] = useState('')
   const [fundMsg, setFundMsg] = useState('')
   const [funding, setFunding] = useState(false)
 
@@ -21,7 +28,7 @@ export default function Journey() {
     const [cfg, list, acc] = await Promise.all([
       getConfig(),
       getStops(),
-      getAccount(getPublicKey()),
+      getAccount(),
     ])
     setConfig(cfg)
     setStops(list)
@@ -158,12 +165,19 @@ export default function Journey() {
           compartas.
         </p>
         {!showSecret ? (
-          <button type="button" className="btn btn-secondary" onClick={() => setShowSecret(true)}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={async () => {
+              setSecret(await getBackupSecret())
+              setShowSecret(true)
+            }}
+          >
             Mostrar clave secreta
           </button>
         ) : (
           <pre className="secret-box" tabIndex={0}>
-            {getSecretForBackup()}
+            {secret}
           </pre>
         )}
       </section>
