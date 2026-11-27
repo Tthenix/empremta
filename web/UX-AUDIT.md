@@ -108,3 +108,22 @@ La base es sobria y correcta: lenguaje respetuoso, fondo claro, tipografía legi
 - Controles semánticos reales (`button`, `label`, links) y skip link presente.
 - El QR de cobro es grande y escaneable.
 - La pantalla de pago ya muestra la separación comercio/centro antes de firmar.
+
+## Estado posterior al polish (2026-11-27)
+
+Resueltos:
+
+- `/transparencia`: sin overflow a 375 px; explicación de verificabilidad en una línea; total sobrio; pagos como lista con “Ver en Stellar”; estados vacíos explícitos; montos exactos.
+- `/pagar`: comercio/referencia arriba; fila “Total que pagás”; ayuda del descuento; montos exactos; botón full-width y estado con `aria-live`.
+- `/v/:stopId`: placeholder de fotografía compacto; botón visible en el primer viewport a 375 px; progreso de preparación/ubicación/registro anunciado con `aria-live`.
+- `/` y `/recorrido`: progreso visual sobrio, explicación de Huellas/canje y acción para ver paradas.
+- `/comercio/:id`: estado “Esperando pago…” arriba del QR; URL secundaria colapsable; placeholder de comercio visible.
+- Accesibilidad: acento `#356e8e` medido a 5.27:1 sobre fondo y 5.57:1 sobre blanco; base 18 px; navegación y links de transacción con objetivo ≥48 px; regla `prefers-reduced-motion` global.
+- Performance: rutas secundarias divididas; QR solo en ruta de comercio; mapa diferido; SDK Stellar diferido dentro del límite `api.js`.
+- Verificación final: sin overflow horizontal a 375 px en las 7 pantallas; comprobación equivalente a zoom 200 % (viewport desktop 1280 → layout 640 CSS px) sin overflow.
+
+Queda abierto / depende de validación humana:
+
+- Contenido histórico real, fotografías propias y atribución: pendiente por diseño hasta hablar con veteranos/organizaciones.
+- Selección de comercio real y validación del pitch.
+- El bundle inicial sigue siendo 296.97 kB minificado / 94.32 kB gzip por React/router/base; ya no incluye el SDK Stellar ni el mapa, pero se podría evaluar un vendor split más fino solo si la medición en Android real lo justifica.
