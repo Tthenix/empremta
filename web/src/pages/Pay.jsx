@@ -100,7 +100,7 @@ export default function Pay() {
     return (
       <div className="page">
         <ErrorMsg>Falta información del cobro. Escaneá el QR del comercio.</ErrorMsg>
-        <Link className="btn" to="/">
+        <Link className="btn btn-primary" to="/">
           Ir al inicio
         </Link>
       </div>
@@ -136,7 +136,7 @@ export default function Pay() {
           <TxLink hash={done.txHash} explorerTxUrl={config?.explorerTxUrl} />
         </section>
         <div className="btn-row">
-          <Link className="btn" to="/transparencia">
+          <Link className="btn btn-primary" to="/transparencia">
             Ver transparencia
           </Link>
           <Link className="btn btn-secondary" to="/recorrido">
@@ -198,7 +198,7 @@ export default function Pay() {
                 </p>
               </div>
               <strong>
-                −{formatUsdc(d.discount)} {label}
+                {Number(d.discount) > 0 ? '−' : ''}{formatUsdc(d.discount)} {label}
               </strong>
             </li>
             <li className="total-row">

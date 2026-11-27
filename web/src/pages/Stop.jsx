@@ -113,7 +113,7 @@ export default function Stop() {
           </p>
           <TxLink hash={done.txHash} explorerTxUrl={config?.explorerTxUrl} />
           <div className="btn-row">
-            <Link className="btn" to="/recorrido">
+            <Link className="btn btn-primary" to="/recorrido">
               Ver mi recorrido
             </Link>
             <Link className="btn btn-secondary" to="/">
@@ -122,7 +122,7 @@ export default function Stop() {
           </div>
         </div>
       ) : code ? (
-        <>
+        <section className="stop-action" aria-label="Registrar visita">
           <ErrorMsg>{error}</ErrorMsg>
           <button type="button" className="btn btn-primary btn-block" onClick={onRegister} disabled={busy}>
             {busy ? 'Registrando…' : 'Registrar mi visita'}
@@ -134,7 +134,7 @@ export default function Stop() {
             La primera vez se crea una billetera segura en este celular. No tenés que escribir
             claves ni instalar nada.
           </p>
-        </>
+        </section>
       ) : (
         <p className="scan-note">
           Para registrar tu visita, escaneá con la cámara del celular el código QR que está en

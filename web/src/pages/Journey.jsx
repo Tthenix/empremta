@@ -117,11 +117,14 @@ export default function Journey() {
       <section>
         <h2>Visitas</h2>
         {!account?.visits?.length ? (
-          <div className="empty">
-            <p>Todavía no registraste visitas. Escaneá el QR en un lugar de memoria.</p>
-            <Link className="btn btn-secondary" to="/">
-              Ver las paradas
-            </Link>
+          <div className="empty-state">
+            <p className="empty-title">Todavía no registraste visitas</p>
+            <p>Escaneá el QR en un lugar de memoria para empezar tu recorrido.</p>
+            <p>
+              <Link className="btn btn-secondary" to="/">
+                Ver las paradas
+              </Link>
+            </p>
           </div>
         ) : (
           <ul className="visit-list">
