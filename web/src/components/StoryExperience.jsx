@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import SpecialPiece from './SpecialPiece.jsx'
 import { isPlaceholder } from '../lib/format.js'
-import { specialSpeech } from '../lib/experiences.js'
+import { getSpecials, specialSpeech } from '../lib/experiences.js'
 
 function buildChapters(stop, exp) {
   const chapters = []
@@ -19,15 +19,13 @@ function buildChapters(stop, exp) {
     }
     current.paragraphs.push(text)
   }
-  if (exp.special) {
-    chapters.splice(Math.min(2, chapters.length), 0, {
-      id: 'special',
-      kicker: 'Mirá de cerca',
-      title: exp.special.title,
-      intro: exp.special.intro,
-      special: exp.special,
-    })
-  }
+  getSpecials(exp).forEach((special, i) => {
+    const anchor = chapters.findIndex((c) => c.title === special.after)
+    let at = anchor >= 0 ? anchor + 1 : Math.min(2, chapters.length)
+    // Varias piezas tras la misma parte quedan en el orden en que se declararon.
+    while (chapters[at]?.special) at++
+    chapters.splice(at, 0, { id: `special-${i}`, kicker: 'Mirá de cerca', title: special.title, intro: special.intro, special })
+  })
   if (stop.historia && !isPlaceholder(stop.historia)) {
     chapters.push({
       id: 'voz',
