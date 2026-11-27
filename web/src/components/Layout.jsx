@@ -16,7 +16,7 @@ export default function Layout() {
       <header className="site-header">
         <NavLink to="/" className="brand" aria-label="Empremta, Ruta de la Memoria: ir al inicio">
           <img src="/brand/empremta-horizontal-color.svg" alt="" width="178" height="60" className="brand-logo" />
-          <span className="brand-subtitle">Ruta de la Memoria · Malvinas · Mendoza</span>
+          <span className="brand-subtitle">Huellas de Malvinas en Mendoza</span>
         </NavLink>
         <nav className="site-nav" aria-label="Principal">
           {links.map((l) => (
@@ -30,7 +30,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <p>Malvinas · Mendoza · memoria y territorio</p>
+        <p>Empremta · memoria, recorrido y apoyo verificable</p>
       </footer>
     </div>
   )
