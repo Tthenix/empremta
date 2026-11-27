@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   demoFund,
@@ -20,6 +20,9 @@ import MerchantOffer from '../components/MerchantOffer.jsx'
 import { partnerMerchants } from '../lib/format.js'
 
 const BACKUP_FLAG = 'empremta-respaldo'
+const POLLAR_DISMISS_FLAG = 'empremta-pollar-ahora-no'
+const POLLAR_ENABLED = Boolean(import.meta.env.VITE_POLLAR_PUBLISHABLE_KEY)
+const PollarBackup = lazy(() => import('../components/PollarBackup.jsx'))
 
 export default function Journey() {
   const [account, setAccount] = useState(null)
@@ -184,6 +187,48 @@ export default function Journey() {
         </section>
       )}
 
+
+      {POLLAR_ENABLED && visited > 0 && !backedUp && !pollarDismissed && (
+        <section className="backup-reminder" aria-labelledby="pollar-title">
+          <p id="pollar-title" className="register-title">
+            ¿Querés guardar tu recorrido con tu mail?
+          </p>
+          <p>
+            Sirve para no perderlo si cambiás de celular. Podés hacerlo ahora o seguir solo con este dispositivo.
+          </p>
+          {pollarOpen ? (
+            <Suspense fallback={<Loading label="Cargando respaldo con mail…" />}>
+              <PollarBackup
+                onDone={() => {
+                  writeFlag(BACKUP_FLAG, 'pollar')
+                  setBackedUp(true)
+                }}
+                onDismiss={() => {
+                  writeFlag(POLLAR_DISMISS_FLAG, '1')
+                  setPollarDismissed(true)
+                }}
+              />
+            </Suspense>
+          ) : (
+            <div className="btn-row">
+              <button type="button" className="btn btn-primary" onClick={() => setPollarOpen(true)}>
+                Dejar mi mail
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  writeFlag(POLLAR_DISMISS_FLAG, '1')
+                  setPollarDismissed(true)
+                }}
+              >
+                Ahora no
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className={canRedeem ? 'reward-card is-ready' : 'reward-card'} aria-labelledby="reward-title">
         <h2 id="reward-title">{canRedeem ? 'Tu descuento está listo' : 'Tu descuento'}</h2>
         <MerchantOffer merchants={merchants} config={config} ready={canRedeem} />
@@ -209,14 +254,14 @@ export default function Journey() {
               <span className="how-n" aria-hidden="true">3</span>
               <span>
                 <strong>Revisá y confirmá</strong>
-                <span>Vas a ver cuánto va al comercio y cuánto al {centro}.</span>
+                <span>Canjeás tus huellas; después pagás al comercio como siempre.</span>
               </span>
             </li>
           </ol>
         ) : (
           <p>
-            Cuando tengas las {stops.length || 3} huellas, el descuento tiene un tope de{' '}
-            {config?.descuentoMaxUsdc ?? '1'} USDC por compra.{' '}
+            Cuando tengas las {stops.length || 3} huellas vas a tener un {config?.descuentoPct ?? 10}% de
+            descuento (hasta ${config?.descuentoMaxArs ?? '2000'}) en comercios adheridos. El comercio aporta al {centro}.{' '}
             {visited < (stops.length || 3) && (
               <strong>
                 Te {(stops.length || 3) - visited === 1 ? 'falta' : 'faltan'} {(stops.length || 3) - visited}.
@@ -242,10 +287,23 @@ export default function Journey() {
         </div>
       </section>
 
-      {config?.demoMode && usdc === 0 && (
-        <button type="button" className="btn btn-secondary btn-block" onClick={onFund} disabled={funding}>
-          {funding ? 'Cargando saldo de prueba…' : 'Cargar saldo de prueba'}
-        </button>
+      {config?.demoMode && (
+        <details className="backup-details">
+          <summary>Opciones avanzadas / demo</summary>
+          <div className="backup-body">
+            <p className="fine-print">
+              El pago directo en USDC sigue disponible solo para pruebas técnicas. El recorrido principal no requiere saldo del visitante.
+            </p>
+            {usdc === 0 && (
+              <button type="button" className="btn btn-secondary btn-block" onClick={onFund} disabled={funding}>
+                {funding ? 'Cargando saldo de prueba…' : 'Cargar saldo de prueba'}
+              </button>
+            )}
+            <Link className="btn btn-secondary btn-block" to="/pagar">
+              Abrir pago técnico con USDC
+            </Link>
+          </div>
+        </details>
       )}
 
       <details

@@ -132,6 +132,55 @@ export async function confirmPay({ merchantId, amount, ref, useHuellas, xdr }) {
   return paySubmit(signedXdr)
 }
 
+export async function redeemBuild({ merchantId, amountArs, ref }) {
+  const publicKey = (await wallet()).getPublicKey()
+  const body = { publicKey, merchantId, amountArs, ref }
+  if (USE_MOCK) return mock.redeemBuild(body)
+  return request('/api/redeem/build', { method: 'POST', body: JSON.stringify(body) })
+}
+
+export async function redeemSubmit(signedXdr) {
+  if (USE_MOCK) return mock.redeemSubmit({ signedXdr })
+  return request('/api/redeem/submit', {
+    method: 'POST',
+    body: JSON.stringify({ signedXdr }),
+  })
+}
+
+export async function confirmRedeem({ xdr }) {
+  if (USE_MOCK) return redeemSubmit(xdr)
+  const { signXdr } = await wallet()
+  return redeemSubmit(signXdr(xdr))
+}
+
+export async function pollarHuellaAccessBuild(publicKey) {
+  return request('/api/pollar/huella-access/build', {
+    method: 'POST',
+    body: JSON.stringify({ publicKey }),
+  })
+}
+
+export async function pollarHuellaAccessSubmit(signedXdr) {
+  return request('/api/pollar/huella-access/submit', {
+    method: 'POST',
+    body: JSON.stringify({ signedXdr }),
+  })
+}
+
+export async function pollarHuellaTransferBuild({ publicKey, destination, amount }) {
+  return request('/api/pollar/huella-transfer/build', {
+    method: 'POST',
+    body: JSON.stringify({ publicKey, destination, amount }),
+  })
+}
+
+export async function pollarHuellaTransferSubmit(signedXdr) {
+  return request('/api/pollar/huella-transfer/submit', {
+    method: 'POST',
+    body: JSON.stringify({ signedXdr }),
+  })
+}
+
 export async function getMerchants() {
   if (USE_MOCK) return mock.getMerchants()
   return request('/api/merchants')
@@ -141,6 +190,12 @@ export async function getMerchantPayments(id, since) {
   if (USE_MOCK) return mock.getMerchantPayments(id, since)
   const q = since != null ? `?since=${encodeURIComponent(since)}` : ''
   return request(`/api/merchants/${encodeURIComponent(id)}/payments${q}`)
+}
+
+export async function getMerchantRedemptions(id, since) {
+  if (USE_MOCK) return mock.getMerchantRedemptions(id, since)
+  const q = since != null ? `?since=${encodeURIComponent(since)}` : ''
+  return request(`/api/merchants/${encodeURIComponent(id)}/redemptions${q}`)
 }
 
 export async function getTransparencia() {

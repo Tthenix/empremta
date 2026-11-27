@@ -36,7 +36,7 @@ const StopMap = lazy(() => import('../components/StopMap.jsx'))
 const steps = [
   { n: 1, title: 'Andá al lugar', text: 'Son tres monumentos de Malvinas en Mendoza.' },
   { n: 2, title: 'Escaneá el QR', text: 'Está en el cartel. Leé o escuchá la historia y dejá tu huella.' },
-  { n: 3, title: 'Completá la ruta', text: 'Con las tres huellas tenés un descuento, y cada compra aporta a los veteranos.' },
+  { n: 3, title: 'Completá la ruta', text: 'Canjeás las huellas por un descuento; pagás al comercio como siempre y el comercio aporta a los veteranos.' },
 ]
 
 export default function Home() {

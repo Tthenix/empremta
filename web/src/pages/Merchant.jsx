@@ -3,11 +3,11 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import {
   getConfig,
-  getMerchantPayments,
+  getMerchantRedemptions,
   getMerchants,
   humanError,
 } from '../lib/api.js'
-import { formatAmount, formatDate, isPlaceholder, randomRef } from '../lib/format.js'
+import { formatAmount, formatDate, formatUsdc, isPlaceholder, randomRef } from '../lib/format.js'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
@@ -17,11 +17,11 @@ export default function Merchant() {
   const { id } = useParams()
   const [merchant, setMerchant] = useState(null)
   const [config, setConfig] = useState(null)
-  const [amount, setAmount] = useState('2.50')
+  const [amount, setAmount] = useState('10000')
   const [refCode, setRefCode] = useState('')
   const [qrUrl, setQrUrl] = useState('')
   const [qrDataUrl, setQrDataUrl] = useState('')
-  const [payment, setPayment] = useState(null)
+  const [redemption, setRedemption] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const sinceRef = useRef(0)
@@ -52,12 +52,12 @@ export default function Merchant() {
   }, [id])
 
   useEffect(() => {
-    if (!refCode || payment) return undefined
+    if (!refCode || redemption) return undefined
     const tick = async () => {
       try {
-        const list = await getMerchantPayments(id, sinceRef.current)
-        const match = list.find((p) => p.ref === refCode)
-        if (match) setPayment(match)
+        const list = await getMerchantRedemptions(id, sinceRef.current)
+        const match = list.find((r) => r.ref === refCode)
+        if (match) setRedemption(match)
       } catch {
         /* keep polling */
       }
@@ -65,21 +65,21 @@ export default function Merchant() {
     tick()
     const t = setInterval(tick, 3000)
     return () => clearInterval(t)
-  }, [refCode, id, payment])
+  }, [refCode, id, redemption])
 
   async function onGenerate(e) {
     e.preventDefault()
     setError('')
-    setPayment(null)
+    setRedemption(null)
     const amt = amount.trim()
-    if (!/^\d+(\.\d{1,7})?$/.test(amt) || Number(amt) <= 0) {
-      setError('Ingresá un monto válido.')
+    if (!/^\d+(\.\d{1,2})?$/.test(amt) || Number(amt) <= 0) {
+      setError('Ingresá un monto en pesos válido.')
       return
     }
     const ref = randomRef(8)
     sinceRef.current = Date.now()
     const origin = window.location.origin
-    const url = `${origin}/pagar?m=${encodeURIComponent(id)}&monto=${encodeURIComponent(amt)}&ref=${ref}`
+    const url = `${origin}/canjear?m=${encodeURIComponent(id)}&monto=${encodeURIComponent(amt)}&ref=${ref}`
     setRefCode(ref)
     setQrUrl(url)
     try {
@@ -107,7 +107,7 @@ export default function Merchant() {
       <ErrorMsg>{error}</ErrorMsg>
 
       <form className="cash-form" onSubmit={onGenerate}>
-        <label htmlFor="monto">Monto ({config?.usdcLabel || 'USDC'})</label>
+        <label htmlFor="monto">Ticket en pesos (ARS)</label>
         <input
           id="monto"
           name="monto"
@@ -118,32 +118,35 @@ export default function Merchant() {
           required
         />
         <button type="submit" className="btn btn-primary">
-          Generar cobro
+          Generar canje
         </button>
       </form>
 
       {qrDataUrl && (
         <section className="qr-panel" aria-live="polite" aria-atomic="true">
-          {payment ? (
+          {redemption ? (
             <div className="success-box payment-live" role="status">
-              <p>Pago recibido</p>
               <p>
-                {formatAmount(payment.amount)} · {formatDate(payment.createdAt)}
+                Huellas canjeadas · aplicá un descuento de ${formatAmount(redemption.discountArs, 2)} · cobrale ${formatAmount(Number(redemption.amountArs) - Number(redemption.discountArs), 2)} por tu medio habitual
               </p>
-              <TxLink hash={payment.txHash} explorerTxUrl={config?.explorerTxUrl} />
-              <p className="fine-print">Para otro cobro, ingresá un monto y tocá “Generar cobro”.</p>
+              <p>
+                Aporte al Centro: {formatUsdc(redemption.aporteUsdc)} {config?.usdcLabel || 'USDC'}
+              </p>
+              <p className="fine-print">{formatDate(redemption.createdAt)}</p>
+              <TxLink hash={redemption.txHash} explorerTxUrl={config?.explorerTxUrl} />
+              <p className="fine-print">Para otro canje, ingresá un monto y tocá “Generar canje”.</p>
             </div>
           ) : (
             <p className="waiting payment-live" role="status">
-              Esperando pago…
+              Esperando canje…
             </p>
           )}
-          {!payment && (
+          {!redemption && (
             <>
-              <img className="qr-img" src={qrDataUrl} alt={`Código QR de cobro, referencia ${refCode}`} />
+              <img className="qr-img" src={qrDataUrl} alt={`Código QR de canje, referencia ${refCode}`} />
               <p className="fine-print">Ref. {refCode}</p>
               <details className="qr-details">
-                <summary>Ver enlace de cobro</summary>
+                <summary>Ver enlace de canje</summary>
                 <p className="qr-url">{qrUrl}</p>
               </details>
             </>

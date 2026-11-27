@@ -220,6 +220,9 @@ function Stop({ stopId }) {
           <button type="button" className="btn btn-primary btn-block btn-big" onClick={onRegister} disabled={busy}>
             {busy ? 'Guardando…' : 'Dejar mi huella'}
           </button>
+          <p className="field-help">
+            Tu visita queda registrada públicamente en Stellar con fecha, hora y lugar bajo una billetera anónima. No guardamos nombre, correo ni datos personales.
+          </p>
           <div className="progress-note" role="status" aria-live="polite" aria-atomic="true">
             {progress}
           </div>

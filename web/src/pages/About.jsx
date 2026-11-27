@@ -214,6 +214,20 @@ export default function About() {
         </p>
       </section>
 
+      <section className="about-panel" aria-labelledby="privacidad-title">
+        <h2 id="privacidad-title">Privacidad</h2>
+        <p>
+          Cada visita queda registrada públicamente en Stellar con fecha, hora y lugar bajo una
+          billetera anónima creada en el navegador. No guardamos nombre, correo electrónico ni
+          datos personales.
+        </p>
+        <p>
+          La transparencia de los aportes también es pública: cualquier persona puede verificar en
+          Stellar cuánto llegó al centro y desde qué comercio, sin exponer la identidad de quienes
+          recorrieron la ruta.
+        </p>
+      </section>
+
       <section className="about-panel" aria-labelledby="demo-title">
         <h2 id="demo-title">Demostración técnica</h2>
         <p>

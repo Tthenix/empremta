@@ -126,12 +126,16 @@ const HUELLAS_POR_VISITA = 10
 const COSTO_CANJE = 30
 const DESCUENTO_PCT = 10
 const DESCUENTO_MAX = 1
+const DESCUENTO_MAX_ARS = 2000
+const ARS_PER_USDC = 1400
+const APORTE_PCT = 5
 
 /** @type {Map<string, { onboarded: boolean, huella: number, usdc: number, visits: Array, demoFunded: boolean }>} */
 const accounts = new Map()
 
 /** @type {Array<object>} */
 const payments = []
+const redemptions = []
 
 let txCounter = 0
 
@@ -191,6 +195,9 @@ export async function getConfig() {
     costoCanje: COSTO_CANJE,
     descuentoPct: DESCUENTO_PCT,
     descuentoMaxUsdc: String(DESCUENTO_MAX),
+    arsPerUsdc: String(ARS_PER_USDC),
+    aportePct: APORTE_PCT,
+    descuentoMaxArs: String(DESCUENTO_MAX_ARS),
     explorerTxUrl: 'https://stellar.expert/explorer/testnet/tx/',
     explorerAccountUrl: 'https://stellar.expert/explorer/testnet/account/',
     centroLabel: 'Centro de Veteranos (cuenta de demostración)',
@@ -395,9 +402,86 @@ export async function paySubmit({ signedXdr }) {
   return { txHash, desglose }
 }
 
+const pendingRedemptions = new Map()
+
+export async function redeemBuild({ publicKey, merchantId, amountArs, ref }) {
+  await delay()
+  if (!ref || String(ref).length < 4) err('INVALID_INPUT', 'Falta la referencia del canje')
+  if (redemptions.some((r) => r.merchantId === merchantId && r.ref === ref)) {
+    err('ALREADY_PAID', 'Este canje ya fue hecho. Pedile al comercio un canje nuevo.', 409)
+  }
+  const merchant = MERCHANTS.find((m) => m.id === merchantId)
+  if (!merchant) err('NOT_FOUND', 'No encontramos ese comercio', 404)
+  const acc = getAccount(publicKey)
+  if (!acc.onboarded) err('NOT_ONBOARDED', 'Primero tenés que activar tu recorrido')
+  if (acc.huella < COSTO_CANJE) err('INSUFFICIENT_BALANCE', 'Todavía no tenés las Huellas necesarias para canjear')
+  const amount = Number(amountArs)
+  if (!Number.isFinite(amount) || amount <= 0) err('INVALID_INPUT', 'El monto en pesos no es válido')
+  const discount = Math.min((amount * DESCUENTO_PCT) / 100, DESCUENTO_MAX_ARS)
+  const total = amount - discount
+  const aporte = Math.floor(((total * APORTE_PCT) / 100 / ARS_PER_USDC) * 1e7) / 1e7
+  if (aporte <= 0) err('INVALID_INPUT', 'El monto es demasiado bajo para calcular el aporte')
+  const desglose = {
+    amountArs: amount.toFixed(2),
+    discountArs: discount.toFixed(2),
+    totalArs: total.toFixed(2),
+    aporteUsdc: aporte.toFixed(7),
+    arsPerUsdc: String(ARS_PER_USDC),
+    aportePct: APORTE_PCT,
+    huellasBurned: COSTO_CANJE,
+    merchant: { id: merchant.id, nombre: merchant.nombre },
+  }
+  const id = `redeem:${publicKey}:${ref}:${Date.now()}`
+  pendingRedemptions.set(id, { publicKey, merchantId, amountArs, ref, desglose })
+  return { xdr: fakeXdr(id), desglose }
+}
+
+export async function redeemSubmit({ signedXdr }) {
+  await delay()
+  let entry = null
+  let key = null
+  for (const [k, v] of pendingRedemptions) {
+    if (String(signedXdr).includes(k) || String(signedXdr).includes(v.ref)) {
+      entry = v
+      key = k
+      break
+    }
+  }
+  if (!entry && pendingRedemptions.size) {
+    const last = [...pendingRedemptions.entries()].at(-1)
+    key = last[0]
+    entry = last[1]
+  }
+  if (!entry) err('INVALID_INPUT', 'No encontramos el canje pendiente')
+  const acc = getAccount(entry.publicKey)
+  if (acc.huella < COSTO_CANJE) err('INSUFFICIENT_BALANCE', 'Todavía no tenés las Huellas necesarias para canjear')
+  acc.huella -= COSTO_CANJE
+  const txHash = fakeHash()
+  redemptions.unshift({
+    txHash,
+    ref: entry.ref,
+    pubkey: entry.publicKey,
+    merchantId: entry.merchantId,
+    amountArs: entry.desglose.amountArs,
+    discountArs: entry.desglose.discountArs,
+    aporteUsdc: entry.desglose.aporteUsdc,
+    huellasBurned: COSTO_CANJE,
+    createdAt: Date.now(),
+  })
+  pendingRedemptions.delete(key)
+  return { txHash, desglose: entry.desglose }
+}
+
 export async function getMerchants() {
   await delay()
   return MERCHANTS.map((m) => ({ ...m }))
+}
+
+export async function getMerchantRedemptions(id, since) {
+  await delay()
+  let list = redemptions.filter((r) => r.merchantId === id)
+  if (since) list = list.filter((r) => r.createdAt >= Number(since))
+  return list.map(({ merchantId, ...rest }) => rest)
 }
 
 export async function getMerchantPayments(id, since) {
