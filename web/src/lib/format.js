@@ -7,6 +7,20 @@ export function formatAmount(value, decimals = 2) {
   })
 }
 
+export function formatUsdc(value) {
+  const raw = String(value ?? '').trim()
+  if (!/^-?\d+(\.\d{1,7})?$/.test(raw)) return formatAmount(value, 2)
+
+  const negative = raw.startsWith('-')
+  const unsigned = negative ? raw.slice(1) : raw
+  const [intPart, fracPart = ''] = unsigned.split('.')
+  const groupedInt = Number(intPart).toLocaleString('es-AR')
+  let frac = fracPart.replace(/0+$/, '')
+  if (frac.length < 2) frac = frac.padEnd(2, '0')
+
+  return `${negative ? '−' : ''}${groupedInt},${frac}`
+}
+
 export function formatDate(ms) {
   if (!ms) return '—'
   return new Date(ms).toLocaleString('es-AR', {
