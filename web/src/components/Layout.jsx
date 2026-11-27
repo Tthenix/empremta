@@ -4,6 +4,7 @@ const links = [
   { to: '/', label: 'Inicio', end: true },
   { to: '/recorrido', label: 'Mi recorrido' },
   { to: '/transparencia', label: 'Transparencia' },
+  { to: '/acerca', label: 'Acerca' },
 ]
 
 export default function Layout() {

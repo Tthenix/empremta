@@ -6,6 +6,7 @@ import Journey from './pages/Journey.jsx'
 import Pay from './pages/Pay.jsx'
 import Merchant from './pages/Merchant.jsx'
 import Transparency from './pages/Transparency.jsx'
+import About from './pages/About.jsx'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/pagar" element={<Pay />} />
           <Route path="/comercio/:id" element={<Merchant />} />
           <Route path="/transparencia" element={<Transparency />} />
+          <Route path="/acerca" element={<About />} />
         </Route>
       </Routes>
     </BrowserRouter>
