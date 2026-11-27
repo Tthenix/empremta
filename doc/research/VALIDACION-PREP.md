@@ -65,7 +65,12 @@ Verificado:
 - La obra tiene 50 metros de largo por 10 metros de ancho y se adapta a la linealidad del parque.
 - Incluye una explanada de hormigón, un muro principal, una cronología histórica, homenaje a caídos mendocinos y una llama votiva.
 - Surgió de una propuesta de veteranos y de un trabajo de unificación entre ACUVEMA, AVUM, ADEM y FECUVEMA.
-- La municipalidad informa que el memorial homenajea a 15 héroes mendocinos; una nota de Clarín habla de 16 caídos de la provincia. **Discrepancia no resuelta:** confirmar con veteranos/municipio antes de escribir cualquier número en la app.
+- **Cantidad de caídos mendocinos: 15** (verificado el 27/11/2026). Coinciden el Gobierno de Mendoza ("los 15 héroes mendocinos que dieron su vida"; velada cultural: "los 15 mendocinos caídos"), Unidiversidad/UNCuyo ("359 eran mendocinos, 15 de los cuales murieron en la guerra") y Sitio Andino (15 placas con nombres en el memorial). No se encontró ninguna fuente publicada que hable de 16 caídos: el "16" de Diario Uno se refiere a 16 técnicos de la IV Brigada Aérea que viajaron a Puerto San Julián, no a caídos. Igual conviene confirmarlo con los veteranos.
+  - https://www.mendoza.gov.ar/prensa/el-gobernador-participo-de-la-inauguracion-del-memorial-malvinas-argentinas/
+  - https://www.mendoza.gov.ar/prensa/cultura-recordo-a-veteranos-y-caidos-de-malvinas-con-una-velada-artistica/
+  - https://www.unidiversidad.com.ar/homenajes-para-los-heroes-de-malvinas
+  - https://www.sitioandino.com.ar/sociedad/el-sueno-un-veterano-malvinas-quiero-cerrar-el-circulo-viendo-la-bandera-las-islas-n5652913
+  - https://www.diariouno.com.ar/sociedad/los-tecnicos-malvinas-la-iv-brigada-aerea-conmemoran-el-2-abril-puerto-san-julian-n1006555
 
 Fuentes:
 
@@ -212,5 +217,5 @@ Alinear el registro final con `VALIDACION.md`. No ayudar salvo bloqueo total; an
 - Acceso peatonal y punto exacto recomendado para QR en Plaza Héroes de Malvinas.
 - Estado actual de placas/llama/monumento en la rotonda de Coquimbito.
 - Vigencia de teléfonos de AVUM y fundaciones.
-- Cantidad correcta de caídos mendocinos mencionada en el memorial (discrepancia 15/16 en fuentes).
+- Cantidad de caídos mendocinos: 15 según todas las fuentes públicas encontradas; confirmar con los veteranos.
 - Comercio concreto cercano que acepte conversar.
