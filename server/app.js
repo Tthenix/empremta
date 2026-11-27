@@ -183,8 +183,8 @@ app.post('/api/demo/fund', asyncRoute(async (req, res) => {
 const webDist = path.resolve('web/dist');
 if (fs.existsSync(webDist)) {
   app.use(express.static(webDist));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) return next();
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
     return res.sendFile(path.join(webDist, 'index.html'));
   });
 }

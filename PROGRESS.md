@@ -8,6 +8,7 @@
 - M2 completo: registro de visita con firma, código HMAC, anti-duplicado SQLite y mint de 10 HUELLA por parada. E2E llegó a 30 HUELLA y rechazó una repetida.
 - M3 completo: fondeo demo una sola vez, pago `2.50` con canje de 30 HUELLA, split atómico exacto, quema a 0 y fee-bump dejando al visitante con 0 XLM.
 - M4 completo: API Express + SQLite con las formas de `doc/API_CONTRACT.md`. `npm run e2e -- --http` pasó el flujo completo por HTTP y verificó config, stops, account, merchants, payments y transparencia.
+- M7 completo: `npm run qr` generó 3 PNG y un PDF imprimible en `dist/qr/`; `docker build` y `docker run` + smoke `/api/config` pasaron. README documenta local, Docker y Railway.
 
 ## Transacciones reales de testnet
 - Flags de ISSUER: https://stellar.expert/explorer/testnet/tx/32d3d8c8d88523712e16da7216b04f4967e1091f12b57659dd1f64d740c72216
@@ -33,6 +34,8 @@
 - Demo fund HTTP M4: https://stellar.expert/explorer/testnet/tx/70888427261858c949a987f15e2c13fc2ca49354cd6d72a520accfa65668ca4a
 - Pago HTTP M4 con fee-bump: https://stellar.expert/explorer/testnet/tx/21dc16c97e23d080948391ca0054afead053a13b034310bfbc09f3437bb5e122
 - Cuenta visitante M4: https://stellar.expert/explorer/testnet/account/GCGONNVGJOAQX7A5QJYQMVICYHERA5EQLH2EIUJJGY4ZU2H2LWCE3ZYF
+- Re-verificación HTTP tras actualizar dependencias/Express: pago https://stellar.expert/explorer/testnet/tx/07d930d972f34be13c232182a72a3156cb2c91e255931f4e2ad2a67f23eec35a
+- Cuenta de esa re-verificación: https://stellar.expert/explorer/testnet/account/GCY7KOYPQASE5MXEQZYAOBGPJFB6TJDQXK2TVOSJHBFC6L7R2GLWT73T
 
 ## Tareas humanas pendientes (SPEC §17)
 - [ ] Contactar a Veteranos Unidos por Malvinas de Mendoza u otro centro de veteranos; pedir 2 o 3 historias reales, permiso de publicación y que un veterano pruebe la app.
