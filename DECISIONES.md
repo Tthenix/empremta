@@ -26,3 +26,4 @@
 - Trazabilidad de suspensiones: se lee Horizon en vez de una tabla local porque la operación puede ejecutarse fuera del proceso web; la API muestra como vigentes solo las cuentas cuya última operación de flags del emisor limpia `authorized`, así una restauración posterior no las presenta como suspendidas.
 - Errores de suspensión: la revocación se comprueba antes de construir/enumerar transacciones y también se traduce desde `op_not_authorized` como red de seguridad; el contrato usa `ACCOUNT_REVOKED` con mensaje humano único.
 - Accesibilidad de relatos: la lectura sintética usa Web Speech API solo cuando no existe una grabación real y nunca para placeholders; así la voz cedida por veteranos tiene prioridad sobre una voz sintética y no se lee contenido pendiente.
+- Carteles QR: se usa el PNG del isotipo simple porque PDFKit no incrusta SVG de forma nativa; el PNG oficial evita agregar dependencias y respeta la pieza de marca indicada para señalética QR.

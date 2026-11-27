@@ -92,6 +92,7 @@ Genera en `dist/qr/`:
 
 - `parada-pc.png`, `parada-plu.png`, `parada-coq.png`
 - `qr-paradas-ruta-memoria.pdf` (una hoja imprimible con los 3 QR)
+- `carteles-ruta-memoria.pdf` (un cartel A4 con marca para cada parada)
 
 Antes de imprimir, `PUBLIC_BASE_URL` tiene que ser la URL pública HTTPS: `npm run qr` se niega a generar QR que apunten a `localhost` (para forzarlo: `npm run qr -- --allow-local`).
 

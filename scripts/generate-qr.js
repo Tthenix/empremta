@@ -8,6 +8,7 @@ import { stops } from '../server/content.js';
 import { stopCode } from '../server/visits.js';
 
 const outDir = path.resolve('dist/qr');
+const simpleIsotypePath = path.resolve('doc/brand/png/empremta-isotipo-simple-color.png');
 
 function baseUrl() {
   const url = config.publicBaseUrl.replace(/\/$/, '');
@@ -86,6 +87,66 @@ async function generatePdf(items) {
   return file;
 }
 
+async function generatePostersPdf(items) {
+  if (!fs.existsSync(simpleIsotypePath)) {
+    throw new Error(`Falta el isotipo simple de marca: ${simpleIsotypePath}`);
+  }
+  const file = path.join(outDir, 'carteles-ruta-memoria.pdf');
+  const doc = new PDFDocument({ size: 'A4', margin: 56, autoFirstPage: false });
+  const stream = fs.createWriteStream(file);
+  doc.pipe(stream);
+
+  items.forEach((item, index) => {
+    doc.addPage({ size: 'A4', margin: 56 });
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const centerX = doc.page.margins.left + pageWidth / 2;
+
+    doc.image(simpleIsotypePath, centerX - 38, 42, { width: 76 });
+    doc.fillColor('#16202A')
+      .fontSize(28)
+      .text(item.stop.nombre, doc.page.margins.left, 138, {
+        width: pageWidth,
+        align: 'center',
+        lineGap: 3
+      });
+    doc.fillColor('#4A5866')
+      .fontSize(14)
+      .text(item.stop.lugar, doc.page.margins.left, 196, {
+        width: pageWidth,
+        align: 'center',
+        lineGap: 2
+      });
+
+    const qrSize = 300;
+    const qrY = 246;
+    doc.image(item.file, centerX - qrSize / 2, qrY, { width: qrSize, height: qrSize });
+
+    doc.fillColor('#16202A')
+      .fontSize(17)
+      .text(
+        'Escaneá para conocer la historia de este lugar y registrar tu visita',
+        doc.page.margins.left + 24,
+        qrY + qrSize + 28,
+        { width: pageWidth - 48, align: 'center', lineGap: 4 }
+      );
+
+    doc.fillColor('#1F4E79')
+      .fontSize(10)
+      .text(
+        'Empremta · Huellas de Malvinas en Mendoza',
+        doc.page.margins.left,
+        doc.page.height - doc.page.margins.bottom - 16,
+        { width: pageWidth, align: 'center', lineBreak: false }
+      );
+
+    if (index < items.length - 1) doc.fillColor('#16202A');
+  });
+
+  doc.end();
+  await finished(stream);
+  return file;
+}
+
 async function main() {
   if (!config.qrSecret) throw new Error('Falta QR_SECRET en .env. Corré primero npm run setup.');
   fs.mkdirSync(outDir, { recursive: true });
@@ -98,6 +159,8 @@ async function main() {
   }
   const pdf = await generatePdf(items);
   console.log(`PDF imprimible: ${pdf}`);
+  const posters = await generatePostersPdf(items);
+  console.log(`Carteles de parada: ${posters}`);
 }
 
 main().catch((err) => {
