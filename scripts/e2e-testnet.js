@@ -1,7 +1,10 @@
+import crypto from 'node:crypto';
 import { Keypair, Networks, TransactionBuilder } from '@stellar/stellar-sdk';
 import { config } from '../server/config.js';
-import { stops } from '../server/content.js';
+import { getMerchant, stops } from '../server/content.js';
 import { recordVisitor } from '../server/db.js';
+import { decimalToStroopsUnchecked } from '../server/money.js';
+import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from '../server/payments.js';
 import {
   assetBalance,
   buildOnboarding,
@@ -93,6 +96,53 @@ async function registerThreeVisits(visitor) {
   return hashes;
 }
 
+function stroopsOf(balance) {
+  return decimalToStroopsUnchecked(balance || '0');
+}
+
+async function verifyDemoFundAndPayment(visitor) {
+  const funded = await fundDemoOnce(visitor.publicKey());
+  printTx('Demo fund tx', funded.txHash);
+  const afterFund = await getAccountBalances(visitor.publicKey());
+  assert(stroopsOf(afterFund.usdc) === stroopsOf(config.demoFundUsdc), `USDC esperado ${config.demoFundUsdc}, recibido ${afterFund.usdc}`);
+
+  const merchant = getMerchant('m1');
+  const beforeVisitor = await getAccountBalances(visitor.publicKey());
+  const beforeMerchant = await getAccountBalances(merchant.pub);
+  const beforeCentro = await getAccountBalances(config.centroPub);
+  const ref = crypto.randomBytes(4).toString('hex').toUpperCase();
+  const built = await buildMerchantPayment({
+    publicKey: visitor.publicKey(),
+    merchantId: 'm1',
+    amount: '2.50',
+    ref,
+    useHuellas: true
+  });
+  assert(built.desglose.amount === '2.5000000', `amount inesperado ${built.desglose.amount}`);
+  assert(built.desglose.discount === '0.2500000', `discount inesperado ${built.desglose.discount}`);
+  assert(built.desglose.total === '2.2500000', `total inesperado ${built.desglose.total}`);
+  assert(built.desglose.toMerchant === '2.1375000', `toMerchant inesperado ${built.desglose.toMerchant}`);
+  assert(built.desglose.toCentro === '0.1125000', `toCentro inesperado ${built.desglose.toCentro}`);
+  assert(built.desglose.huellasBurned === 30, `huellasBurned inesperado ${built.desglose.huellasBurned}`);
+  console.log('Desglose verificado antes de firmar:', JSON.stringify(built.desglose));
+
+  const signedPayment = signXdr(built.xdr, visitor);
+  const payment = await submitMerchantPayment(signedPayment);
+  printTx('Pago fee-bump tx', payment.txHash);
+
+  const afterVisitor = await getAccountBalances(visitor.publicKey());
+  const afterMerchant = await getAccountBalances(merchant.pub);
+  const afterCentro = await getAccountBalances(config.centroPub);
+  const merchantDiff = stroopsOf(afterMerchant.usdc) - stroopsOf(beforeMerchant.usdc);
+  const centroDiff = stroopsOf(afterCentro.usdc) - stroopsOf(beforeCentro.usdc);
+  assert(merchantDiff === stroopsOf(built.desglose.toMerchant), `merchant diff ${merchantDiff} != ${built.desglose.toMerchant}`);
+  assert(centroDiff === stroopsOf(built.desglose.toCentro), `centro diff ${centroDiff} != ${built.desglose.toCentro}`);
+  assert(stroopsOf(afterVisitor.huella) === 0n, `HUELLA esperado 0, recibido ${afterVisitor.huella}`);
+  assert(afterVisitor.xlm === '0.0000000', `XLM esperado 0.0000000 después del fee-bump, recibido ${afterVisitor.xlm}`);
+  assert(stroopsOf(beforeVisitor.usdc) - stroopsOf(afterVisitor.usdc) === stroopsOf(built.desglose.total), 'el visitante no pagó exactamente el total con descuento');
+  console.log(`Pago verificado: merchant +${built.desglose.toMerchant}, centro +${built.desglose.toCentro}, HUELLA=${afterVisitor.huella}, XLM=${afterVisitor.xlm}`);
+}
+
 async function main() {
   const visitor = Keypair.random();
   console.log(`Visitante de prueba: ${visitor.publicKey()}`);
@@ -101,7 +151,8 @@ async function main() {
   await onboardVisitor(visitor);
   await verifyOnboarding(visitor);
   await registerThreeVisits(visitor);
-  console.log('M1+M2 OK');
+  await verifyDemoFundAndPayment(visitor);
+  console.log('M1+M2+M3 OK');
 }
 
 main().catch((err) => {
