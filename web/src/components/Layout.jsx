@@ -14,7 +14,10 @@ export default function Layout() {
         Ir al contenido
       </a>
       <header className="site-header">
-        <p className="brand">Ruta de la Memoria</p>
+        <NavLink to="/" className="brand" aria-label="Empremta, Ruta de la Memoria: ir al inicio">
+          <img src="/brand/empremta-horizontal-color.svg" alt="" width="178" height="60" className="brand-logo" />
+          <span className="brand-subtitle">Ruta de la Memoria · Malvinas · Mendoza</span>
+        </NavLink>
         <nav className="site-nav" aria-label="Principal">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>

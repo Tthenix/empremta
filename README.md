@@ -1,4 +1,6 @@
-# Ruta de la Memoria · Malvinas · Mendoza
+<p align="center"><img src="web/public/brand/empremta-horizontal-color.svg" alt="Empremta" width="360"></p>
+
+# Empremta · Ruta de la Memoria · Malvinas · Mendoza
 
 App web para recorrer lugares de memoria de Malvinas en Mendoza. Cada visita queda registrada en Stellar testnet como `HUELLA`; al completar las 3 paradas, la persona puede canjear un descuento en un comercio adherido. El pago se divide en una sola transacción atómica: una parte va al comercio y otra al Centro de Veteranos (cuenta de demostración), públicamente verificable.
 

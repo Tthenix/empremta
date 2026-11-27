@@ -1,17 +1,23 @@
 {
-  "name": "Ruta de la Memoria · Malvinas · Mendoza",
-  "short_name": "Ruta Memoria",
+  "name": "Empremta · Ruta de la Memoria · Malvinas · Mendoza",
+  "short_name": "Empremta",
   "description": "Recorrido por lugares de memoria de Malvinas en Mendoza",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f9fb",
-  "theme_color": "#3d7a9c",
+  "theme_color": "#1F4E79",
   "lang": "es-AR",
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "/icons/app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
