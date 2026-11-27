@@ -697,6 +697,14 @@ summary:focus-visible,
   border-radius: var(--radius-lg);
 }
 
+.listen-controls {
+  margin: var(--space-3) 0;
+}
+
+.listen-button {
+  width: 100%;
+}
+
 .stop-audio {
   width: 100%;
   margin-top: var(--space-3);

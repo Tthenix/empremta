@@ -11,6 +11,16 @@ import PlaceholderBox from '../components/PlaceholderBox.jsx'
 import Loading from '../components/Loading.jsx'
 import ErrorMsg from '../components/ErrorMsg.jsx'
 import TxLink from '../components/TxLink.jsx'
+import { isPlaceholder } from '../lib/format.js'
+
+function pickSpanishVoice() {
+  const voices = window.speechSynthesis?.getVoices?.() || []
+  return (
+    voices.find((voice) => voice.lang === 'es-AR') ||
+    voices.find((voice) => voice.lang?.toLowerCase().startsWith('es')) ||
+    null
+  )
+}
 
 function getGeo() {
   return new Promise((resolve) => {
@@ -38,6 +48,13 @@ export default function Stop() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
   const [progress, setProgress] = useState('')
+  const [speechSupported] = useState(() => (
+    typeof window !== 'undefined' &&
+    'speechSynthesis' in window &&
+    'SpeechSynthesisUtterance' in window
+  ))
+  const [speaking, setSpeaking] = useState(false)
+  const [speechStatus, setSpeechStatus] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -57,6 +74,47 @@ export default function Stop() {
       cancelled = true
     }
   }, [stopId])
+
+  useEffect(() => {
+    setSpeaking(false)
+    setSpeechStatus('')
+    return () => {
+      if (speechSupported) window.speechSynthesis.cancel()
+    }
+  }, [stopId, speechSupported])
+
+  function stopSpeech() {
+    window.speechSynthesis.cancel()
+    setSpeaking(false)
+    setSpeechStatus('')
+  }
+
+  function toggleSpeech() {
+    if (!speechSupported || !stop?.historia) return
+    if (speaking) {
+      stopSpeech()
+      return
+    }
+
+    const utterance = new SpeechSynthesisUtterance(stop.historia)
+    const voice = pickSpanishVoice()
+    utterance.lang = voice?.lang || 'es-AR'
+    if (voice) utterance.voice = voice
+    utterance.rate = 0.95
+    utterance.onend = () => {
+      setSpeaking(false)
+      setSpeechStatus('')
+    }
+    utterance.onerror = () => {
+      setSpeaking(false)
+      setSpeechStatus('')
+    }
+
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utterance)
+    setSpeaking(true)
+    setSpeechStatus('Leyendo el relato…')
+  }
 
   async function onRegister() {
     setError('')
@@ -81,6 +139,8 @@ export default function Stop() {
   if (!stop && error) return <ErrorMsg>{error}</ErrorMsg>
   if (!stop) return <ErrorMsg>No encontramos esa parada.</ErrorMsg>
 
+  const canListen = speechSupported && !stop.audio && !isPlaceholder(stop.historia)
+
   return (
     <div className="page stop">
       <h1>{stop.nombre}</h1>
@@ -98,6 +158,21 @@ export default function Stop() {
         <h2 id="historia-title">La historia de este lugar</h2>
         <PlaceholderBox text={stop.historia} />
         {stop.fuente && <PlaceholderBox text={stop.fuente} label="Fuente" />}
+        {canListen && (
+          <div className="listen-controls">
+            <button
+              type="button"
+              className="btn btn-secondary listen-button"
+              aria-pressed={speaking}
+              onClick={toggleSpeech}
+            >
+              {speaking ? 'Detener' : 'Escuchar el relato'}
+            </button>
+            <div className="sr-status" role="status" aria-live="polite" aria-atomic="true">
+              {speechStatus}
+            </div>
+          </div>
+        )}
         {stop.audio && (
           <audio controls src={stop.audio} className="stop-audio">
             Tu navegador no reproduce audio.
