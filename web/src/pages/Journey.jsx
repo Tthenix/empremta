@@ -102,7 +102,7 @@ export default function Journey() {
           <ul className="visit-list">
             {account.visits.map((v) => (
               <li key={`${v.stopId}-${v.txHash}`}>
-                <Link to={`/v/${v.stopId}?c=democode12345678`}>
+                <Link to={`/v/${v.stopId}`}>
                   {stopMap[v.stopId]?.nombre || v.stopId}
                 </Link>
                 <span className="muted">{formatDate(v.createdAt)}</span>

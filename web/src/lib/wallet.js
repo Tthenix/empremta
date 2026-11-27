@@ -55,7 +55,7 @@ export function getSecretForBackup() {
 export function signVisit(stopId, ts) {
   const kp = getOrCreateKeypair()
   const msg = Buffer.from(`visita:${stopId}:${ts}`, 'utf8')
-  return kp.sign(msg).toString('base64')
+  return Buffer.from(kp.sign(msg)).toString('base64')
 }
 
 export function signXdr(xdr) {

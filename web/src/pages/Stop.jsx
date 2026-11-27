@@ -61,11 +61,6 @@ export default function Stop() {
     setError('')
     setBusy(true)
     try {
-      if (!code || code.length < 8) {
-        throw Object.assign(new Error('Escaneá el QR del lugar para registrar tu visita.'), {
-          apiError: { code: 'INVALID_CODE', message: 'Escaneá el QR del lugar para registrar tu visita.' },
-        })
-      }
       await ensureOnboarded()
       const { lat, lng } = await getGeo()
       const result = await registerVisit({ stopId, code, lat, lng })
@@ -119,7 +114,7 @@ export default function Stop() {
             </Link>
           </div>
         </div>
-      ) : (
+      ) : code ? (
         <>
           <ErrorMsg>{error}</ErrorMsg>
           <button type="button" className="btn btn-primary" onClick={onRegister} disabled={busy}>
@@ -129,6 +124,11 @@ export default function Stop() {
             Se crea una billetera en tu celular. La clave no sale del navegador.
           </p>
         </>
+      ) : (
+        <p className="hint">
+          Para registrar tu visita, escaneá con la cámara del celular el código QR que está en
+          este lugar.
+        </p>
       )}
     </div>
   )

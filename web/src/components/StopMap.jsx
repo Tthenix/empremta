@@ -34,7 +34,7 @@ export default function StopMap({ stops }) {
               <br />
               {s.lugar}
               <br />
-              <Link to={`/v/${s.id}?c=democode12345678`}>Ver parada</Link>
+              <Link to={`/v/${s.id}`}>Ver parada</Link>
             </Popup>
           </Marker>
         ))}

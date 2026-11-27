@@ -78,7 +78,7 @@ export default function Home() {
         <ul className="stop-list">
           {stops.map((s) => (
             <li key={s.id}>
-              <Link to={`/v/${s.id}?c=democode12345678`}>
+              <Link to={`/v/${s.id}`}>
                 <span className="stop-name">{s.nombre}</span>
                 <span className="stop-place">{s.lugar}</span>
               </Link>
