@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 const links = [
   { to: '/', label: 'Inicio', end: true },
   { to: '/recorrido', label: 'Mi recorrido' },
+  { to: '/transparencia', label: 'Transparencia' },
 ]
 
 export default function Layout() {
