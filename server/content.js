@@ -40,6 +40,7 @@ export function stopDetail(stop) {
   return {
     ...stopListItem(stop),
     historiaCorta: stop.historiaCorta || null,
+    audioLugar: stop.audioLugar || null,
     historiaLarga: stop.historiaLarga || null,
     fuentesLugar: stop.fuentesLugar || [],
     testimonioDe: stop.testimonioDe || null,

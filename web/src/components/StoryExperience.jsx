@@ -109,11 +109,15 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel, fini
   const moved = useRef(false)
   const touchStart = useRef(null)
   const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
+  const narrationRef = useRef(null)
+  // Pre-recorded narration of the place introduction (synthetic voice, own text).
+  const introNarration = !allAtOnce && chapters[index]?.id === 'intro' ? stop.audioLugar : null
   // La voz real cedida tiene prioridad: con grabación no se ofrece voz sintética.
-  const canListen = speechSupported && !stop.audio
+  const canListen = (speechSupported || Boolean(introNarration)) && !stop.audio
 
   useEffect(() => () => {
     if (speechSupported) window.speechSynthesis.cancel()
+    narrationRef.current?.pause()
   }, [speechSupported])
 
   useEffect(() => {
@@ -124,6 +128,10 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel, fini
 
   function stopSpeech() {
     if (speechSupported) window.speechSynthesis.cancel()
+    if (narrationRef.current) {
+      narrationRef.current.pause()
+      narrationRef.current.currentTime = 0
+    }
     setSpeaking(false)
   }
 
@@ -154,6 +162,18 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel, fini
 
   function toggleSpeech() {
     if (speaking) return stopSpeech()
+    if (introNarration) {
+      if (speechSupported) window.speechSynthesis.cancel()
+      if (!narrationRef.current || narrationRef.current.dataset.src !== introNarration) {
+        narrationRef.current = new Audio(introNarration)
+        narrationRef.current.dataset.src = introNarration
+      }
+      const audio = narrationRef.current
+      audio.onended = audio.onerror = () => setSpeaking(false)
+      audio.play().then(() => setSpeaking(true)).catch(() => setSpeaking(false))
+      return
+    }
+    if (!speechSupported) return
     const text = allAtOnce ? chapters.map(chapterSpeech).join('. ') : chapterSpeech(chapters[index])
     const u = new SpeechSynthesisUtterance(text)
     const voice = pickSpanishVoice()
@@ -216,6 +236,7 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel, fini
             {speaking ? 'Detener' : allAtOnce ? 'Escuchar todo' : 'Escuchar esta parte'}
           </button>
         )}
+        {canListen && introNarration && <span className="tool-note">Narración con voz sintética (ElevenLabs)</span>}
         {voiceIndex >= 0 && (
           <button type="button" className="tool-btn" aria-pressed={!allAtOnce && index === voiceIndex} onClick={goToTestimony}>
             <span aria-hidden="true">❝</span>

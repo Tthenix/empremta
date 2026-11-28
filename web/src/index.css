@@ -2417,3 +2417,9 @@ html[data-texto='muy-grande'] {
     animation: none;
   }
 }
+
+.tool-note {
+  align-self: center;
+  font-size: 0.85rem;
+  color: var(--muted, #4a5866);
+}
