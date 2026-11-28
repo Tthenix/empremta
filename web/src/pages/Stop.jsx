@@ -18,6 +18,10 @@ import StoryExperience from '../components/StoryExperience.jsx'
 import StopPhoto from '../components/StopPhoto.jsx'
 import { nextStopFrom } from '../lib/route.js'
 
+function scrollBehavior() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+}
+
 function getGeo() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
@@ -168,15 +172,18 @@ function Stop({ stopId }) {
   const nextStop = nextStopFrom(stop, stops, visitedIds, seenIds)
 
   let finishLabel = 'Volver a la ruta'
+  let finishDescription = 'Podés volver a la ruta cuando quieras.'
   let onFinish = () => navigate('/')
   if (canRegister) {
-    finishLabel = 'Dejar mi huella'
+    finishLabel = 'Ir a dejar mi huella'
+    finishDescription = 'Si estás en el lugar, el próximo paso es dejar tu huella.'
     onFinish = () => {
-      registerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      registerRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
       registerRef.current?.querySelector('button')?.focus({ preventScroll: true })
     }
   } else if (nextStop) {
     finishLabel = `Próximo lugar: ${nextStop.nombre}`
+    finishDescription = `El próximo paso es seguir hacia ${nextStop.nombre}.`
     onFinish = () => navigate(`/v/${nextStop.id}`)
   }
 
@@ -205,6 +212,9 @@ function Stop({ stopId }) {
             Cómo llegar
           </a>
         )}
+        <p className="xp-story-cue">
+          <strong>La historia se lee por partes.</strong> Deslizá o tocá Seguir para ver la próxima parte.
+        </p>
       </header>
 
       {done ? (
@@ -238,7 +248,7 @@ function Stop({ stopId }) {
         )
       )}
 
-      <StoryExperience key={stop.id} stop={stop} exp={exp} onFinish={onFinish} finishLabel={finishLabel} />
+      <StoryExperience key={stop.id} stop={stop} exp={exp} onFinish={onFinish} finishLabel={finishLabel} finishDescription={finishDescription} />
     </div>
   )
 }

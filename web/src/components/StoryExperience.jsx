@@ -43,6 +43,10 @@ function chapterSpeech(ch) {
   return [ch.title, ...ch.paragraphs].join('. ')
 }
 
+function scrollBehavior() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+}
+
 function pickSpanishVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || []
   return voices.find((v) => v.lang === 'es-AR') || voices.find((v) => v.lang?.toLowerCase().startsWith('es')) || null
@@ -84,14 +88,26 @@ function Chapter({ ch, stop, headingRef }) {
   )
 }
 
-export default function StoryExperience({ stop, exp, onFinish, finishLabel }) {
+function StoryEnd({ finishDescription, children }) {
+  return (
+    <div className="story-end">
+      <p className="story-end-title">Terminaste la historia de este lugar.</p>
+      <p>{finishDescription}</p>
+      {children}
+    </div>
+  )
+}
+
+export default function StoryExperience({ stop, exp, onFinish, finishLabel, finishDescription }) {
   const chapters = buildChapters(stop, exp)
   const [index, setIndex] = useState(0)
   const [allAtOnce, setAllAtOnce] = useState(false)
   const [speaking, setSpeaking] = useState(false)
+  const [hintVisible, setHintVisible] = useState(true)
   const headingRef = useRef(null)
   const topRef = useRef(null)
   const moved = useRef(false)
+  const touchStart = useRef(null)
   const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
   // La voz real cedida tiene prioridad: con grabación no se ofrece voz sintética.
   const canListen = speechSupported && !stop.audio
@@ -114,7 +130,26 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel }) {
   function go(next) {
     stopSpeech()
     moved.current = true
+    setHintVisible(false)
     setIndex(next)
+  }
+
+  function onTouchStart(event) {
+    if (allAtOnce || event.target.closest?.('button, a, audio, input, textarea, select, summary')) return
+    const touch = event.changedTouches[0]
+    touchStart.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  function onTouchEnd(event) {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start || allAtOnce) return
+    const touch = event.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.25) return
+    if (dx < 0 && index < chapters.length - 1) go(index + 1)
+    if (dx > 0 && index > 0) go(index - 1)
   }
 
   function toggleSpeech() {
@@ -143,12 +178,23 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel }) {
     if (!allAtOnce) return go(voiceIndex)
     stopSpeech()
     const heading = document.getElementById('ch-voz')
-    heading?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    heading?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
     heading?.focus({ preventScroll: true })
   }
 
+  const endDescription = finishDescription || 'Podés volver a la ruta cuando quieras.'
+
   return (
-    <section className="story-xp" ref={topRef} aria-label="Historia del lugar">
+    <section
+      className="story-xp"
+      ref={topRef}
+      aria-label="Historia del lugar"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => {
+        touchStart.current = null
+      }}
+    >
       <p className="story-contents">
         La historia del lugar en {placeParts} {placeParts === 1 ? 'parte' : 'partes'}
         {voiceIndex >= 0 && (
@@ -158,6 +204,11 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel }) {
         )}
         .
       </p>
+      {!allAtOnce && index === 0 && hintVisible && chapters.length > 1 && (
+        <p className="story-hint">
+          Deslizá o tocá <strong>Seguir</strong> para ver la próxima parte.
+        </p>
+      )}
       <div className="story-tools">
         {canListen && (
           <button type="button" className="tool-btn" aria-pressed={speaking} onClick={toggleSpeech}>
@@ -186,31 +237,69 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel }) {
       <div className="sr-status" role="status" aria-live="polite">
         {speaking ? 'Leyendo en voz alta…' : ''}
       </div>
+      {!allAtOnce && (
+        <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">
+          Parte {index + 1} de {chapters.length}: {ch.title}
+          {last ? '. Última parte.' : ''}
+        </div>
+      )}
 
       {allAtOnce ? (
-        chapters.map((c) => <Chapter key={c.id} ch={c} stop={stop} />)
+        <>
+          {chapters.map((c) => <Chapter key={c.id} ch={c} stop={stop} />)}
+          <StoryEnd finishDescription={endDescription}>
+            {onFinish && (
+              <button type="button" className="btn btn-primary btn-block" onClick={onFinish}>
+                {finishLabel}
+              </button>
+            )}
+          </StoryEnd>
+        </>
       ) : (
         <>
-          <div className="chapter-progress" aria-hidden="true">
-            {chapters.map((c, i) => (
-              <span key={c.id} className={i <= index ? 'is-done' : ''} />
-            ))}
-          </div>
-          <p className="chapter-count">
-            Parte {index + 1} de {chapters.length}
-          </p>
+          {chapters.length > 1 && (
+            <div className="chapter-stepper" role="group" aria-label="Progreso de la historia">
+              <p className="chapter-count">
+                Parte {index + 1} de {chapters.length}
+              </p>
+              <ol className="chapter-dots">
+                {chapters.map((c, i) => (
+                  <li
+                    key={c.id}
+                    className={`chapter-dot${i < index ? ' is-done' : ''}${i === index ? ' is-current' : ''}`}
+                    aria-current={i === index ? 'step' : undefined}
+                    aria-hidden={i === index ? undefined : true}
+                  >
+                    <span className="visually-hidden">
+                      Parte {i + 1} de {chapters.length}: {c.title}
+                      {i === index ? ', parte actual' : ''}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           <Chapter key={ch.id} ch={ch} stop={stop} headingRef={headingRef} />
-          <div className="chapter-nav">
-            {index > 0 ? (
-              <button type="button" className="btn btn-secondary" onClick={() => go(index - 1)}>
+          {last && <StoryEnd finishDescription={endDescription} />}
+          <div className={`chapter-nav${index === 0 ? ' chapter-nav-first' : ''}`} role="group" aria-label="Navegación entre partes de la historia">
+            {index > 0 && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                aria-label={`Volver a la parte ${index} de ${chapters.length}: ${chapters[index - 1].title}`}
+                onClick={() => go(index - 1)}
+              >
                 ← Anterior
               </button>
-            ) : (
-              <span />
             )}
             {!last ? (
-              <button type="button" className="btn btn-primary" onClick={() => go(index + 1)}>
-                Siguiente →
+              <button
+                type="button"
+                className="btn btn-primary"
+                aria-label={`Seguir a la parte ${index + 2} de ${chapters.length}: ${chapters[index + 1].title}`}
+                onClick={() => go(index + 1)}
+              >
+                Seguir →
               </button>
             ) : (
               onFinish && (
