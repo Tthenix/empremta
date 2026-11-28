@@ -141,7 +141,7 @@ export async function buildOnboarding(publicKey) {
   }
 
   const issuerAccount = await loadAccount(config.issuerPub);
-  const tx = new TransactionBuilder(issuerAccount, {
+  const builder = new TransactionBuilder(issuerAccount, {
     fee: '1000',
     networkPassphrase: Networks.TESTNET
   })
@@ -150,9 +150,17 @@ export async function buildOnboarding(publicKey) {
     .addOperation(Operation.changeTrust({ asset: HUELLA, source: publicKey }))
     .addOperation(Operation.changeTrust({ asset: USDC, source: publicKey }))
     .addOperation(Operation.setTrustLineFlags({ trustor: publicKey, asset: HUELLA, flags: { authorized: true } }))
-    .addOperation(Operation.endSponsoringFutureReserves({ source: publicKey }))
-    .setTimeout(300)
-    .build();
+    .addOperation(Operation.endSponsoringFutureReserves({ source: publicKey }));
+  // Demo shortcut (DEMO_START_HUELLAS > 0): new visitors start with Huellas so a
+  // live test can go straight to the merchant. Off by default.
+  if (config.demoMode && config.demoStartHuellas > 0) {
+    builder.addOperation(Operation.payment({
+      destination: publicKey,
+      asset: HUELLA,
+      amount: String(config.demoStartHuellas)
+    }));
+  }
+  const tx = builder.setTimeout(300).build();
   rememberTx(tx, 'onboard', { publicKey });
   return { xdr: tx.toXDR() };
 }
