@@ -116,6 +116,11 @@ export default function Redeem() {
       <h1>Canjear mis Huellas</h1>
       <p className="lede">Pagás en el comercio como siempre. Acá solo se canjean tus Huellas.</p>
       <ErrorMsg>{error}</ErrorMsg>
+      {error.startsWith('Te faltan') && (
+        <Link className="btn btn-primary btn-block" to="/">
+          Ver los lugares de la ruta
+        </Link>
+      )}
 
       {!d ? (
         !error && <Loading label="Calculando el canje…" />
