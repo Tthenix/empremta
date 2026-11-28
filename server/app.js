@@ -17,9 +17,17 @@ import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
 export const app = express();
-// Trust exactly the platform proxy hops (Railway adds one), never every hop:
-// with `true` a client could spoof X-Forwarded-For and bypass the rate limits.
-app.set('trust proxy', config.trustProxyHops);
+// Client IP for rate limiting. Railway's public edge overwrites X-Real-IP on
+// every request (client copies are replaced) and its hop count is not fixed,
+// so in production we read that header instead of trusting X-Forwarded-For.
+// Never use `trust proxy: true`: a client could spoof X-Forwarded-For.
+function clientIp(req) {
+  if (config.clientIpHeader) {
+    const value = req.get(config.clientIpHeader);
+    if (value) return value.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || req.ip || 'unknown';
+}
 
 app.use(cors());
 app.use(express.json({ limit: '100kb' }));
@@ -29,6 +37,8 @@ const postLimiter = rateLimit({
   limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => clientIp(req),
+  validate: { xForwardedForHeader: false, keyGeneratorIpFallback: false },
   handler: (req, res) => {
     res.status(429).json({
       error: { code: 'RATE_LIMITED', message: 'Demasiados intentos, esperá un minuto y probá de nuevo' }
@@ -36,7 +46,7 @@ const postLimiter = rateLimit({
   }
 });
 app.use('/api', (req, res, next) => {
-  if (isLocalhostIp(req.ip)) return next();
+  if (isLocalhostIp(clientIp(req))) return next();
   if (req.method === 'POST') return postLimiter(req, res, next);
   return next();
 });
@@ -54,7 +64,7 @@ function isLocalhostIp(ip) {
 }
 
 function assertOnboardingIpAllowance(req, publicKey) {
-  const ip = req.ip || 'unknown';
+  const ip = clientIp(req);
   if (isLocalhostIp(ip)) return;
   const day = new Date().toISOString().slice(0, 10);
   const key = `${day}:${ip}`;

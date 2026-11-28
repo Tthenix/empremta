@@ -37,7 +37,8 @@ export const config = {
   demoStartHuellas: Number(process.env.DEMO_START_HUELLAS || 0),
   demoStartUsdc: String(process.env.DEMO_START_USDC || 'false').toLowerCase() === 'true',
   maxNewWalletsPerIpPerDay: Number(process.env.MAX_NEW_WALLETS_PER_IP_PER_DAY || 5),
-  trustProxyHops: Number(process.env.TRUST_PROXY_HOPS || 1),
+  // Header set by the hosting edge with the real client IP (Railway: X-Real-IP).
+  clientIpHeader: process.env.CLIENT_IP_HEADER ?? (process.env.NODE_ENV === 'production' ? 'x-real-ip' : ''),
   maxTicketArs: process.env.MAX_TICKET_ARS || '50000',
   publicBaseUrl: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
   homeDomain: process.env.HOME_DOMAIN || '',
