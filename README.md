@@ -41,6 +41,41 @@ Caja del comercio y /transparencia se actualizan
 con hash verificable en stellar.expert
 ```
 
+## Modelo de negocio
+
+### Principio
+Empremta **nunca cobra de la parte que va a los veteranos** ni al visitante. Cobra a quien recibe valor: el comercio, que gana clientes, y la institución, que gana una ruta de memoria. Todo lo que se cobra en la cadena es visible en la misma transacción.
+
+### Quién paga y por qué
+
+| Fuente | Quién paga | A cambio de qué | Estado |
+|---|---|---|---|
+| **Comisión por canje** | El comercio | 2 % de cada venta que le llega a través de la ruta. Paga solo cuando le llevamos un cliente. | Propuesto. Hoy el canje incluye solo el aporte a los veteranos; el 2 % se sumaría como una operación más dentro de la misma transacción atómica. |
+| **Armado de rutas** | Municipios, turismo y educación | Investigación del lugar, testimonios con permiso, carteles con QR y un año de mantenimiento. | Propuesto. Principal fuente de ingresos en la primera etapa. |
+| **Patrocinio de paradas** | Empresas locales | Financian una parada o duplican el aporte de los visitantes, visible en la cadena. | Propuesto. |
+
+Sobre cada venta de la ruta, el comercio resigna un 10 % de descuento, un 5 % de aporte a los veteranos y un 2 % para Empremta. Ese 17 % lo vamos a validar con comercios reales; si resulta alto, se baja el descuento.
+
+### Cuánto cuesta operarlo
+
+| Concepto | Costo estimado |
+|---|---|
+| Hosting | USD 5 a 20 por mes, según el uso |
+| Dominio | Alrededor de USD 15 por año |
+| Reservas en Stellar por visitante | 1,5 a 2 XLM. No se gastan: quedan bloqueadas y se recuperan si la cuenta se cierra |
+| Comisiones de red | 0,00001 XLM por operación: fracciones de centavo |
+| Por cada ruta nueva | Carteles mate con QR (uno por parada), investigación y redacción de cada lugar, y testimonios grabados con consentimiento |
+
+### Cómo se recupera la plata
+- **Primer año:** el ingreso viene del armado de rutas para instituciones. El precio de cada ruta cubre su armado y un año de mantenimiento, y se define según la cantidad de paradas.
+- **Después:** con más comercios y visitantes, la comisión por canje cubre los costos fijos. El punto de equilibrio es `canjes por mes = costos fijos ÷ (2 % × ticket promedio)`. Por ejemplo, con USD 20 por mes de costos y un ticket de USD 5, hacen falta 200 canjes por mes.
+- **Patrocinios:** ingreso adicional, sin costo variable.
+
+### Riesgos y cómo los vamos a validar
+- **Que el comercio considere alto el 17 %:** lo validamos con Einstein Coffee Club y con más comercios. Si es alto, bajamos el descuento.
+- **Que las ventas a instituciones sean lentas:** arrancamos con una ruta piloto y patrocinio privado mientras tanto.
+- **Que los veteranos no quieran participar:** es lo primero del roadmap. Sin ellos, el proyecto no sigue.
+
 ## Correr en local
 
 Requisito: Node.js 22.12 o superior (es un runtime Node 20+; se usa 22 porque la versión vigente del SDK de Stellar y `better-sqlite3` lo exigen).
