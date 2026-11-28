@@ -79,23 +79,23 @@ Objetivo: más rutas en Mendoza, la primera fuera de la provincia y el producto 
 | **1 · Patrocinio de paradas** (USD 500 por parada por año) | 3 paradas: 1.500 | 9 paradas: 4.500 | 20 paradas: 10.000 |
 | **2 · Rutas vendidas** (USD 1.500 cada una) | 2 rutas: 3.000 | 3 rutas: 4.500 | 5 rutas: 7.500 |
 | **2 · Mantenimiento de rutas** (USD 500 por ruta por año, desde el segundo año) | — | 2 rutas: 1.000 | 5 rutas: 2.500 |
-| **3 · Comisión del 2 %** (rutas completadas × USD 0,11) | 50 por mes: 34 | 200 por mes: 206 | 500 por mes: 686 |
-| **Total** | **4.534** | **10.206** | **20.686** |
+| **3 · Comisión del 2 %** (rutas completadas × USD 0,10) | 50 por mes: 31 | 200 por mes: 185 | 500 por mes: 617 |
+| **Total** | **4.531** | **10.185** | **20.617** |
 
-**Aporte a los veteranos** (5 % de cada canje, unos ARS 400 por persona que completa la ruta): unos USD 86 en el Hito 2, USD 514 en el Hito 3 y USD 1.714 en el año 3. Es poco al principio, y lo decimos así: el valor inicial para los veteranos es que sus historias se cuenten, y el aporte crece con las visitas.
+**Aporte a los veteranos** (5 % de lo que paga el visitante: unos ARS 360 por persona que completa la ruta): unos USD 77 en el Hito 2, USD 463 en el Hito 3 y USD 1.543 en el año 3. Es poco al principio, y lo decimos así: el valor inicial para los veteranos es que sus historias se cuenten, y el aporte crece con las visitas.
 
 ### En cuánto tiempo se recupera
-- **Escenario mínimo:** a los 9 meses se invirtieron USD 3.440 y entraron USD 4.534. **Se recupera hacia el final del Hito 2.**
-- **Con estipendio:** en 18 meses se invierten USD 23.560 y entran USD 14.740. Desde el año 3 queda un excedente de unos USD 5.500 por año. **Se recupera alrededor del mes 37: unos 3 años.** Por eso buscamos que el Hito 1 se financie con fondos no reembolsables (del ecosistema Stellar, de innovación o de impacto social), y que los siguientes se financien cada vez más con ingresos propios.
+- **Escenario mínimo:** a los 9 meses se invirtieron USD 3.440 y entraron USD 4.531. **Se recupera hacia el final del Hito 2.**
+- **Con estipendio:** en 18 meses se invierten USD 23.560 y entran USD 14.716. Desde el año 3 queda un excedente de unos USD 5.500 por año. **Se recupera alrededor del mes 37: unos 3 años.** Por eso buscamos que el Hito 1 se financie con fondos no reembolsables (del ecosistema Stellar, de innovación o de impacto social), y que los siguientes se financien cada vez más con ingresos propios.
 
 ### Qué pasa si algo no sale (escenario mínimo, 18 meses)
 
 | Escenario | Ingresos en 18 meses | Inversión | Resultado |
 |---|---|---|---|
-| Plan base | USD 14.740 | USD 7.360 | Se recupera hacia el mes 9 |
-| Solo patrocinios, ninguna ruta vendida | USD 6.240 | USD 7.360 | Faltan USD 1.120; se recupera al principio del año 3 |
-| Solo rutas, ningún patrocinio | USD 8.740 | USD 7.360 | Se recupera dentro de los 18 meses |
-| Ni patrocinios ni rutas | USD 240 | USD 7.360 | **No se recupera: es la señal para frenar o cambiar el modelo** |
+| Plan base | USD 14.716 | USD 7.360 | Se recupera hacia el mes 9 |
+| Solo patrocinios, ninguna ruta vendida | USD 6.216 | USD 7.360 | Faltan USD 1.144; se recupera al principio del año 3 |
+| Solo rutas, ningún patrocinio | USD 8.716 | USD 7.360 | Se recupera dentro de los 18 meses |
+| Ni patrocinios ni rutas | USD 216 | USD 7.360 | **No se recupera: es la señal para frenar o cambiar el modelo** |
 
 ### Cómo se mantiene después
 Con el estipendio del equipo más hosting (unos USD 11.000 por año), el punto de equilibrio se alcanza, por ejemplo, con **16 paradas patrocinadas y 6 rutas en mantenimiento.** La comisión suma, pero no se cuenta con ella para el equilibrio.
@@ -112,8 +112,8 @@ Con el estipendio del equipo más hosting (unos USD 11.000 por año), el punto d
 | Precio de una ruta (armado + 1 año) | USD 1.500 | Carta de intención de una institución en el Hito 1. |
 | Mantenimiento anual por ruta | USD 500 | Igual que el anterior. |
 | Rutas completadas por mes | 50 en el Hito 2, 200 en el Hito 3, 500 en el año 3 | Medición real en el piloto. |
-| Ticket promedio | ARS 8.000 (USD 5,71 a ARS 1.400 por USDC) | Datos reales de Einstein Coffee Club. |
+| Ticket promedio | ARS 8.000; con el 10 % de descuento, el visitante paga ARS 7.200 (USD 5,14 a ARS 1.400 por USDC) | Datos reales de Einstein Coffee Club. |
 | Precio del XLM | USD 0,19 (precio de mercado a noviembre de 2026) | Varía con el mercado. |
 | Reservas por visitante | 2 XLM (1,5 si el visitante no necesita el trustline de USDC) | Revisar en el modelo de canje actual. |
 | Estipendio del equipo | USD 300 por mes por persona | Lo define el equipo. |
-| Aceptación del 17 % por parte del comercio | Descuento 10 % + 5 % veteranos + 2 % Empremta, sobre una venta por visitante | Validar con Einstein y más comercios; si es alto, se baja el descuento. |
+| Aceptación de lo que resigna el comercio (unos 16 % del ticket) | Descuento 10 % del ticket + 5 % veteranos y 2 % Empremta sobre lo que paga el visitante, una venta por visitante | Validar con Einstein y más comercios; si es alto, se baja el descuento. |
