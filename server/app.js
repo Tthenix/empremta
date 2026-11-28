@@ -180,6 +180,7 @@ app.get('/api/account/:pub', asyncRoute(async (req, res) => {
 }));
 
 app.post('/api/pay/build', asyncRoute(async (req, res) => {
+  requirePublicKey(req.body?.publicKey);
   const result = await buildMerchantPayment(req.body);
   res.json(result);
 }));
@@ -191,6 +192,7 @@ app.post('/api/pay/submit', asyncRoute(async (req, res) => {
 }));
 
 app.post('/api/redeem/build', asyncRoute(async (req, res) => {
+  requirePublicKey(req.body?.publicKey);
   const result = await buildMerchantRedemption(req.body);
   res.json(result);
 }));
