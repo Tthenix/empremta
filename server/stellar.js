@@ -423,6 +423,11 @@ export function splitRedemption({ amountArs, merchantPctCentro }) {
   if (amountCents <= 0n || amountCents >= 1_000_000_000n) {
     throw invalidInput('El monto en pesos tiene que ser mayor a 0');
   }
+  // The visitor types the ticket and the merchant funds 5 % of it, so cap the
+  // ticket to keep a malicious amount from draining the merchant's USDC.
+  if (amountCents > arsUnits(config.maxTicketArs, 'MAX_TICKET_ARS')) {
+    throw invalidInput(`El monto supera el máximo permitido para un canje ($${config.maxTicketArs})`);
+  }
   const discountPct = parseConfigInt(config.descuentoPct, 'DESCUENTO_PCT');
   const aportePct = parseConfigInt(config.aportePct ?? merchantPctCentro, 'APORTE_PCT');
   if (aportePct <= 0n) throw new Error('APORTE_PCT tiene que ser mayor a 0');

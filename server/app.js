@@ -17,7 +17,9 @@ import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
 
 export const app = express();
-app.set('trust proxy', true);
+// Trust exactly the platform proxy hops (Railway adds one), never every hop:
+// with `true` a client could spoof X-Forwarded-For and bypass the rate limits.
+app.set('trust proxy', config.trustProxyHops);
 
 app.use(cors());
 app.use(express.json({ limit: '100kb' }));
@@ -47,6 +49,7 @@ function asyncRoute(handler) {
 const onboardingWalletsByIpDay = new Map();
 
 function isLocalhostIp(ip) {
+  if (process.env.NODE_ENV === 'production') return false;
   return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip || '');
 }
 

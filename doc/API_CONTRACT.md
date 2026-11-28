@@ -78,6 +78,7 @@ Both `/api/pay/build` and `/api/pay/submit` return 409 `ALREADY_PAID` when that 
 
 ## POST /api/redeem/build
 Req `{ "publicKey", "merchantId": "m1", "amountArs": "10000", "ref": "AB12CD34" }` for the primary canje flow. The visitor pays the merchant outside the app; this transaction only burns Huellas and makes the merchant fund the Centro.
+`amountArs` above `MAX_TICKET_ARS` (default 50000) → 400 `INVALID_INPUT` ("El monto supera el máximo permitido para un canje"). Revocation is checked again at submit.
 ```json
 { "xdr": "AAAA...",
   "desglose": { "amountArs": "10000.00", "discountArs": "1000.00", "totalArs": "9000.00",

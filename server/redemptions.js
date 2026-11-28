@@ -42,6 +42,8 @@ export async function submitMerchantRedemption(signedXdr) {
     redemptionRefLocks.add(lockKey);
   }
   try {
+    // Re-check revocation at submit: the account may have been suspended after build.
+    if (meta?.publicKey) await assertVisitorHuellaAccess(meta.publicKey);
     const result = await submitRedemption(signedXdr, merchant);
     try {
       recordRedemption({
