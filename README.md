@@ -41,6 +41,20 @@ La caja del comercio y /transparencia se actualizan
 con el hash verificable en stellar.expert
 ```
 
+### Ejemplo con un café de $10.000
+
+El descuento y el aporte son dos cosas distintas, y las dos las pone el comercio:
+
+| | Monto | Quién / dónde |
+|---|---|---|
+| Ticket | $10.000 | |
+| Descuento 10 % | −$1.000 | Lo ahorra el visitante: no va a nadie. Tope de $2.000 |
+| El visitante paga | $9.000 | En pesos, como siempre (efectivo, tarjeta) |
+| Aporte a los veteranos (5 % de $9.000) | $450 ≈ 0,32 USDC | Del comercio al Centro de Veteranos, por Stellar |
+| Huellas | 30 | Se queman |
+
+En Stellar pasa solo la última parte, en una sola transacción: se queman las 30 Huellas y el comercio manda los 0,32 USDC al Centro. Al comercio le cuesta $1.000 de descuento y $450 de aporte, y a cambio gana un cliente que vino por la ruta.
+
 La conversión del aporte usa `ARS_PER_USDC` como tipo de cambio de referencia y se redondea hacia abajo a 7 decimales. Los detalles técnicos y las variables están en [Canje con aporte del comercio](#canje-con-aporte-del-comercio).
 
 El flujo anterior, en el que el visitante paga en USDC desde la app y el pago se divide entre el comercio y el centro (`/pagar`), sigue disponible solo como opción avanzada de demostración.
@@ -74,13 +88,13 @@ No vendemos una audioguía: para contar historias con un QR existen plataformas 
 | ----- | ---------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1** | **Patrocinio de paradas**    | Empresas locales (bodegas, programas de responsabilidad social) | Su nombre en una parada, o duplicar el aporte de los visitantes, visible en la cadena. | Propuesto. Es la fuente más rápida: no depende de presupuestos públicos.                                                                                  |
 | **2** | **Rutas para instituciones** | Municipios, turismo, escuelas                                   | Investigación, testimonios con permiso, carteles con QR y un año de mantenimiento.     | Propuesto. Tickets más grandes, pero el sector público compra lento.                                                                                      |
-| **3** | **Comisión por canje**       | El comercio                                                     | 2 % de cada venta que le llega por la ruta. Paga solo cuando le llevamos un cliente.   | Propuesto, no implementado: hoy el canje incluye solo el aporte a los veteranos. Es simbólica al principio, porque cada canje requiere completar la ruta. |
+| **3** | **Comisión por canje**       | El comercio                                                     | 2 % de lo que paga el visitante de la ruta. Paga solo cuando le llevamos un cliente.   | Propuesto, no implementado: hoy el canje incluye solo el aporte a los veteranos. Es simbólica al principio, porque cada canje requiere completar la ruta. |
 
-Sobre la venta a un visitante de la ruta, el comercio resigna un 10 % de descuento, un 5 % de aporte a los veteranos y un 2 % para Empremta. Ese 17 % es sobre una sola venta por visitante, y lo vamos a validar con comercios reales.
+Sobre la venta a un visitante de la ruta, el comercio resigna un 10 % de descuento y, sobre lo que el visitante paga, un 5 % de aporte a los veteranos y un 2 % para Empremta: unos 16 % del ticket, una sola vez por visitante. Lo vamos a validar con comercios reales.
 
 ### Cuánto le llega a los veteranos
 
-Unos **ARS 400 por cada persona que completa la ruta** (5 % de un ticket de ARS 8.000). Al principio es poco, y lo decimos así: el valor inicial es que sus historias se cuenten, y el aporte crece con las visitas.
+El **5 % de lo que paga cada visitante que canjea**: con un ticket de ARS 8.000 y el 10 % de descuento, paga ARS 7.200 y al centro le llegan **unos ARS 360**. Al principio es poco, y lo decimos así: el valor inicial es que sus historias se cuenten, y el aporte crece con las visitas.
 
 ### Cuánto cuesta operarlo
 
@@ -107,7 +121,7 @@ En el escenario mínimo se recupera hacia el mes 9; con estipendio, en unos 3 a�
 
 - **Que nadie pague por patrocinios ni por rutas:** es la hipótesis más importante. El Hito 1 no se da por cumplido sin una carta de intención de un patrocinador y otra de una institución.
 - **Que pocas personas completen la ruta:** lo medimos en el piloto. Evaluamos permitir canjes en cada parada, sin exigir las tres.
-- **Que el comercio considere alto el 17 %:** lo validamos con Einstein Coffee Club. Si es alto, bajamos el descuento.
+- **Que el comercio considere alto lo que resigna (unos 16 % del ticket):** lo validamos con Einstein Coffee Club. Si es alto, bajamos el descuento.
 - **Que los veteranos no quieran participar:** es lo primero del roadmap. Sin ellos, el proyecto no sigue.
 
 ## Correr en local
