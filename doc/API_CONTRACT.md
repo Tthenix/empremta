@@ -19,7 +19,7 @@ Known codes: `INVALID_INPUT`, `INVALID_SIGNATURE`, `EXPIRED`, `INVALID_CODE`, `T
   "huellaAsset": { "code": "HUELLA", "issuer": "G..." },
   "demoMode": true, "huellasPorVisita": 10, "costoCanje": 30,
   "descuentoPct": 10, "descuentoMaxUsdc": "1",
-  "arsPerUsdc": "1400", "aportePct": null, "descuentoMaxArs": "2000",
+  "arsPerUsdc": "1400", "aportePct": null, "descuentoMaxArs": "2000", "maxTicketArs": "50000",
   "explorerTxUrl": "https://stellar.expert/explorer/testnet/tx/",
   "explorerAccountUrl": "https://stellar.expert/explorer/testnet/account/",
   "centroLabel": "Centro de Veteranos (cuenta de demostración)",

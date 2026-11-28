@@ -76,6 +76,11 @@ export default function Merchant() {
       setError('Ingresá un monto en pesos válido.')
       return
     }
+    const maxTicket = Number(config?.maxTicketArs ?? 50000)
+    if (Number(amt) > maxTicket) {
+      setError(`El monto máximo para un canje es $${maxTicket.toLocaleString('es-AR')}.`)
+      return
+    }
     const ref = randomRef(8)
     sinceRef.current = Date.now()
     const origin = window.location.origin

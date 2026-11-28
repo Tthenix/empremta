@@ -109,6 +109,7 @@ app.get('/api/config', (req, res) => {
     arsPerUsdc: config.arsPerUsdc,
     aportePct: config.aportePct,
     descuentoMaxArs: config.descuentoMaxArs,
+    maxTicketArs: config.maxTicketArs,
     explorerTxUrl: 'https://stellar.expert/explorer/testnet/tx/',
     explorerAccountUrl: 'https://stellar.expert/explorer/testnet/account/',
     centroLabel: 'Centro de Veteranos (cuenta de demostración)',
