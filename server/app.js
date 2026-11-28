@@ -11,7 +11,7 @@ import { AppError, invalidInput } from './errors.js';
 import { decimalToStroopsUnchecked, fmtStroops } from './money.js';
 import { buildMerchantPayment, fundDemoOnce, submitMerchantPayment } from './payments.js';
 import { buildMerchantRedemption, submitMerchantRedemption } from './redemptions.js';
-import { assetBalance, buildHuellaTransfer, buildOnboarding, buildPollarHuellaAccess, getAccountBalances, HUELLA, submitHuellaTransfer, submitOnboarding, submitPollarHuellaAccess, USDC } from './stellar.js';
+import { assetBalance, buildOnboarding, getAccountBalances, HUELLA, submitOnboarding, USDC } from './stellar.js';
 import { buildStellarToml } from './stellarToml.js';
 import { getCentroOnChain, getHuellaRevocations } from './transparency.js';
 import { registerVisit, visitsFor } from './visits.js';
@@ -186,29 +186,6 @@ app.post('/api/redeem/submit', asyncRoute(async (req, res) => {
   const { signedXdr } = req.body || {};
   const result = await submitMerchantRedemption(signedXdr);
   res.json(result);
-}));
-
-app.post('/api/pollar/huella-access/build', asyncRoute(async (req, res) => {
-  const { publicKey } = req.body || {};
-  requirePublicKey(publicKey);
-  res.json(await buildPollarHuellaAccess(publicKey));
-}));
-
-app.post('/api/pollar/huella-access/submit', asyncRoute(async (req, res) => {
-  const { signedXdr } = req.body || {};
-  res.json(await submitPollarHuellaAccess(signedXdr));
-}));
-
-app.post('/api/pollar/huella-transfer/build', asyncRoute(async (req, res) => {
-  const { publicKey, destination, amount } = req.body || {};
-  requirePublicKey(publicKey);
-  requirePublicKey(destination);
-  res.json(await buildHuellaTransfer({ publicKey, destination, amount }));
-}));
-
-app.post('/api/pollar/huella-transfer/submit', asyncRoute(async (req, res) => {
-  const { signedXdr } = req.body || {};
-  res.json(await submitHuellaTransfer(signedXdr));
 }));
 
 app.get('/api/merchants', (req, res) => {

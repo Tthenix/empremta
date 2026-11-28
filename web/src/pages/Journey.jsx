@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   demoFund,
@@ -20,9 +20,6 @@ import MerchantOffer from '../components/MerchantOffer.jsx'
 import { partnerMerchants } from '../lib/format.js'
 
 const BACKUP_FLAG = 'empremta-respaldo'
-const POLLAR_DISMISS_FLAG = 'empremta-pollar-ahora-no'
-const POLLAR_ENABLED = Boolean(import.meta.env.VITE_POLLAR_PUBLISHABLE_KEY)
-const PollarBackup = lazy(() => import('../components/PollarBackup.jsx'))
 
 export default function Journey() {
   const [account, setAccount] = useState(null)
@@ -184,48 +181,6 @@ export default function Journey() {
           <button type="button" className="btn btn-primary btn-block" onClick={openBackup}>
             Guardar mi clave
           </button>
-        </section>
-      )}
-
-
-      {POLLAR_ENABLED && visited > 0 && !backedUp && !pollarDismissed && (
-        <section className="backup-reminder" aria-labelledby="pollar-title">
-          <p id="pollar-title" className="register-title">
-            ¿Querés guardar tu recorrido con tu mail?
-          </p>
-          <p>
-            Sirve para no perderlo si cambiás de celular. Podés hacerlo ahora o seguir solo con este dispositivo.
-          </p>
-          {pollarOpen ? (
-            <Suspense fallback={<Loading label="Cargando respaldo con mail…" />}>
-              <PollarBackup
-                onDone={() => {
-                  writeFlag(BACKUP_FLAG, 'pollar')
-                  setBackedUp(true)
-                }}
-                onDismiss={() => {
-                  writeFlag(POLLAR_DISMISS_FLAG, '1')
-                  setPollarDismissed(true)
-                }}
-              />
-            </Suspense>
-          ) : (
-            <div className="btn-row">
-              <button type="button" className="btn btn-primary" onClick={() => setPollarOpen(true)}>
-                Dejar mi mail
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  writeFlag(POLLAR_DISMISS_FLAG, '1')
-                  setPollarDismissed(true)
-                }}
-              >
-                Ahora no
-              </button>
-            </div>
-          )}
         </section>
       )}
 

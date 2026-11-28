@@ -132,18 +132,3 @@ Additive non-JSON metadata endpoint. Responds `200 text/plain; charset=utf-8` wi
 - Stop QR: `${PUBLIC_BASE_URL}/v/${stopId}?c=${HMAC_SHA256(QR_SECRET, stopId).hex.slice(0,16)}`
 - Payment QR: `${PUBLIC_BASE_URL}/pagar?m=${merchantId}&monto=${amount}&ref=${ref}`
 
-
-## POST /api/pollar/huella-access/build
-Demo-only additive endpoint for the optional Pollar backup. Req `{ "publicKey": "G..." }` → `{ "xdr": "AAAA..." }` or `{ "alreadyReady": true }`. The server-built XDR adds the HUELLA trustline when missing and authorizes it with an issuer-sourced `setTrustLineFlags` operation.
-
-## POST /api/pollar/huella-access/submit
-Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "..." }`. Server verifies its own hash, co-signs issuer and fee-bumps.
-
-## POST /api/pollar/huella-transfer/build
-Req `{ "publicKey", "destination", "amount" }` → `{ "xdr": "AAAA..." }`. Builds a classic HUELLA payment from the local visitor wallet to the Pollar backup wallet; server validates HUELLA access and sufficient balance.
-
-## POST /api/pollar/huella-transfer/submit
-Req `{ "signedXdr": "AAAA..." }` → `{ "txHash": "..." }`. Server verifies its own hash and fee-bumps; it does not sign the visitor operation.
-
-These Pollar endpoints are demo/testnet scaffolding. Production must authenticate the Pollar user/session server-side before authorizing assets or building backup transfers.
-

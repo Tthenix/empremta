@@ -153,34 +153,6 @@ export async function confirmRedeem({ xdr }) {
   return redeemSubmit(signXdr(xdr))
 }
 
-export async function pollarHuellaAccessBuild(publicKey) {
-  return request('/api/pollar/huella-access/build', {
-    method: 'POST',
-    body: JSON.stringify({ publicKey }),
-  })
-}
-
-export async function pollarHuellaAccessSubmit(signedXdr) {
-  return request('/api/pollar/huella-access/submit', {
-    method: 'POST',
-    body: JSON.stringify({ signedXdr }),
-  })
-}
-
-export async function pollarHuellaTransferBuild({ publicKey, destination, amount }) {
-  return request('/api/pollar/huella-transfer/build', {
-    method: 'POST',
-    body: JSON.stringify({ publicKey, destination, amount }),
-  })
-}
-
-export async function pollarHuellaTransferSubmit(signedXdr) {
-  return request('/api/pollar/huella-transfer/submit', {
-    method: 'POST',
-    body: JSON.stringify({ signedXdr }),
-  })
-}
-
 export async function getMerchants() {
   if (USE_MOCK) return mock.getMerchants()
   return request('/api/merchants')
