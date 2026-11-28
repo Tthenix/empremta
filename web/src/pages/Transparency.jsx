@@ -90,7 +90,9 @@ export default function Transparency() {
             Recibido por el centro
           </p>
           <p className="hero-total-value">
-            <span className="hero-total-number">{formatUsdc(totalCentro)}</span>
+            <span className="hero-total-number" style={{ "--digits": formatUsdc(totalCentro).length }}>
+              {formatUsdc(totalCentro)}
+            </span>
             <span className="hero-total-unit">{label}</span>
           </p>
           <p className="hero-total-meta">

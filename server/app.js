@@ -243,7 +243,17 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
     tipo: 'canje',
     concepto: 'Aporte del comercio por canje'
   }));
-  const rows = [...paymentRows, ...redemptionRows].sort((a, b) => b.createdAt - a.createdAt);
+  const [onChain, revocaciones] = await Promise.all([getCentroOnChain(), getHuellaRevocations()]);
+  // When the ledger was read, only count DB rows whose transaction actually
+  // reached the centro in the configured USDC, so the per-merchant breakdown
+  // always matches the on-chain total (e.g. drops payments made in an older
+  // test asset before switching USDC_MODE).
+  const onChainHashes = onChain?.source === 'horizon'
+    ? new Set((onChain.lista || []).map((item) => item.txHash))
+    : null;
+  const rows = [...paymentRows, ...redemptionRows]
+    .filter((row) => !onChainHashes || onChainHashes.has(row.txHash))
+    .sort((a, b) => b.createdAt - a.createdAt);
   const byMerchant = new Map();
   let total = 0n;
   for (const row of rows) {
@@ -259,7 +269,6 @@ app.get('/api/transparencia', asyncRoute(async (req, res) => {
     group.pagos += 1;
     if (row.tipo === 'canje') group.canjes += 1;
   }
-  const [onChain, revocaciones] = await Promise.all([getCentroOnChain(), getHuellaRevocations()]);
   res.json({
     totalCentro: fmtStroops(total),
     pagos: rows.length,

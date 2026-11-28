@@ -2423,3 +2423,13 @@ html[data-texto='muy-grande'] {
   font-size: 0.85rem;
   color: var(--muted, #4a5866);
 }
+
+/* Keep the big total inside its column whatever its number of digits. */
+.summary-total {
+  container-type: inline-size;
+}
+
+.hero-total-number {
+  font-size: min(1em, calc(100cqi / (var(--digits, 6) * 0.62)));
+  overflow-wrap: anywhere;
+}
