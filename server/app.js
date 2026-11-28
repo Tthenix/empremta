@@ -96,6 +96,16 @@ app.post('/api/onboard/submit', asyncRoute(async (req, res) => {
   const { signedXdr } = req.body || {};
   const result = await submitOnboarding(signedXdr);
   if (result.publicKey) recordVisitor(result.publicKey, result.txHash);
+  // Demo shortcut (DEMO_START_USDC=true): fund the new visitor right away so a
+  // live test does not depend on a "load test balance" button. Off by default;
+  // a funding failure never breaks onboarding.
+  if (result.publicKey && config.demoMode && config.demoStartUsdc) {
+    try {
+      await fundDemoOnce(result.publicKey);
+    } catch (err) {
+      console.warn('[demo] auto-fund failed:', err?.code || err?.message);
+    }
+  }
   res.json({ txHash: result.txHash });
 }));
 

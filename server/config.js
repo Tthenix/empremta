@@ -32,6 +32,7 @@ export const config = {
   demoMode: String(process.env.DEMO_MODE || 'true').toLowerCase() === 'true',
   demoFundUsdc: process.env.DEMO_FUND_USDC || '5',
   demoStartHuellas: Number(process.env.DEMO_START_HUELLAS || 0),
+  demoStartUsdc: String(process.env.DEMO_START_USDC || 'false').toLowerCase() === 'true',
   publicBaseUrl: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
   homeDomain: process.env.HOME_DOMAIN || '',
   port: Number(process.env.PORT || 3000),
