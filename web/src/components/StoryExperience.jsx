@@ -110,8 +110,11 @@ export default function StoryExperience({ stop, exp, onFinish, finishLabel, fini
   const touchStart = useRef(null)
   const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
   const narrationRef = useRef(null)
-  // Pre-recorded narration of the place introduction (synthetic voice, own text).
-  const introNarration = !allAtOnce && chapters[index]?.id === 'intro' ? stop.audioLugar : null
+  // Pre-recorded narration per part (synthetic voice, own text; never the testimony).
+  const currentChapter = chapters[index]
+  const introNarration = allAtOnce || !currentChapter || currentChapter.voice
+    ? null
+    : stop.audioPartes?.[currentChapter.id] || (currentChapter.id === 'intro' ? stop.audioLugar : null)
   // La voz real cedida tiene prioridad: con grabación no se ofrece voz sintética.
   const canListen = (speechSupported || Boolean(introNarration)) && !stop.audio
 

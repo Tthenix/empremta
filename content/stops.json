@@ -39,7 +39,14 @@
     "historia": "Miguel Rivero es mendocino, integró la Compañía de Comandos 601 durante la guerra de Malvinas en tareas de reconocimiento y comunicaciones, y forma parte de la Asociación Cuyana de Veteranos de Malvinas (ACUVEMA). Desde allí comparte sus vivencias para mantener viva la memoria:\n\n«No hablemos solo de Malvinas, hablemos de la Patria. Nuestra Argentina es tu casa, donde está tu familia, tus creencias, tus recuerdos, todo, todo tu ser está en Argentina, en tu casa ¿Qué no harías para defender tu casa? Yo creo que haríamos todo ¿Qué no harías por defender a tu familia? Yo creo que daríamos todo».",
     "fuente": "Extracto citado de la entrevista a Miguel Rivero (24/5/2022), en Ecos de Malvinas: 41 años, 41 entrevistas (coord. Mariana Cóvolo y Jorge C. Dragonetti, EdiUC — Universidad de Congreso, 2023, p. 75).",
     "fuenteUrl": "https://ediuc.ucongreso.edu.ar/wp-content/uploads/sites/6/2024/05/Malvinas_digital.pags_.2024.ok_.pdf",
-    "audioLugar": "/audio/pc-lugar.mp3"
+    "audioPartes": {
+      "intro": "/audio/pc/intro.mp3",
+      "c1": "/audio/pc/c1.mp3",
+      "c2": "/audio/pc/c2.mp3",
+      "c3": "/audio/pc/c3.mp3",
+      "special-0": "/audio/pc/special-0.mp3",
+      "c4": "/audio/pc/c4.mp3"
+    }
   },
   {
     "id": "plu",

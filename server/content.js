@@ -41,6 +41,7 @@ export function stopDetail(stop) {
     ...stopListItem(stop),
     historiaCorta: stop.historiaCorta || null,
     audioLugar: stop.audioLugar || null,
+    audioPartes: stop.audioPartes || null,
     historiaLarga: stop.historiaLarga || null,
     fuentesLugar: stop.fuentesLugar || [],
     testimonioDe: stop.testimonioDe || null,
